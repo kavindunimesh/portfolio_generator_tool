@@ -15,7 +15,8 @@ function ContactSection({ portfolio }: { portfolio: Portfolio }) {
   if (!contact?.enabled) return null;
 
   const isAdawwa = contact.mode !== 'self_hosted';
-  if (isAdawwa && !portfolio.userRoute) return null;
+  const userRoute = portfolio.userRoute?.trim() || '';
+  if (isAdawwa && !userRoute) return null;
 
   const selfHostedEndpoint = selfHostedContactSubmitUrl(contact.adminDomain);
   const selfHostedReady = Boolean(contact.adminDomain?.trim()) && /^https?:\/\//i.test(selfHostedEndpoint);
@@ -27,7 +28,7 @@ function ContactSection({ portfolio }: { portfolio: Portfolio }) {
         <h2 id="pf-contact-heading">Get in touch</h2>
         <p className="pf-contact-lead">Have a question or opportunity? Send a message below.</p>
         {isAdawwa ? (
-          <ContactForm mode="adawwa" userRoute={portfolio.userRoute} />
+          <ContactForm mode="adawwa" userRoute={userRoute} />
         ) : selfHostedReady ? (
           <ContactForm mode="self_hosted" submitUrl={selfHostedEndpoint} />
         ) : (

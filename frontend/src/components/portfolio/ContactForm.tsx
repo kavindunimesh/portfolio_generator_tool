@@ -129,7 +129,7 @@ export function ContactForm(props: Props) {
         honeypot,
         formStartedAt,
       };
-      if (mode === 'self_hosted') {
+      if (props.mode === 'self_hosted') {
         await submitSelfHosted(props.submitUrl, payload);
       } else {
         await api.submitContact(props.userRoute, payload);
