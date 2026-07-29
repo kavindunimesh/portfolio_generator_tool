@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './auth';
 import { ToastProvider } from './toast';
 import { AppShell, RequireAuth } from './components/AppShell';
+import { ScrollToTop } from './components/ScrollToTop';
 import { HomePage } from './pages/HomePage';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
 import { DashboardPage } from './pages/DashboardPage';
@@ -13,6 +14,7 @@ export default function App() {
     <ToastProvider>
       <AuthProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             <Route element={<AppShell />}>
               <Route index element={<HomePage />} />
