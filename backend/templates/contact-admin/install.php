@@ -53,13 +53,21 @@ try {
     }
   }
 
-  // Upgrade older installs that lack soft-hide
+  // Upgrade older installs that lack soft-hide / star
   $hiddenCol = $pdo->query("SHOW COLUMNS FROM contact_messages LIKE 'is_hidden'")->fetch();
   if (!$hiddenCol) {
     $pdo->exec(
       'ALTER TABLE contact_messages
        ADD COLUMN is_hidden TINYINT(1) NOT NULL DEFAULT 0 AFTER is_read,
        ADD KEY idx_contact_messages_hidden (is_hidden, created_at)'
+    );
+  }
+  $starCol = $pdo->query("SHOW COLUMNS FROM contact_messages LIKE 'is_starred'")->fetch();
+  if (!$starCol) {
+    $pdo->exec(
+      'ALTER TABLE contact_messages
+       ADD COLUMN is_starred TINYINT(1) NOT NULL DEFAULT 0 AFTER is_hidden,
+       ADD KEY idx_contact_messages_starred (is_starred, created_at)'
     );
   }
 

@@ -15,8 +15,10 @@ CREATE TABLE IF NOT EXISTS contact_messages (
   user_agent VARCHAR(255) NULL,
   is_read TINYINT(1) NOT NULL DEFAULT 0,
   is_hidden TINYINT(1) NOT NULL DEFAULT 0,
+  is_starred TINYINT(1) NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   KEY idx_contact_messages_created (created_at),
   KEY idx_contact_messages_unread (is_read, created_at),
-  KEY idx_contact_messages_hidden (is_hidden, created_at)
+  KEY idx_contact_messages_hidden (is_hidden, created_at),
+  KEY idx_contact_messages_starred (is_starred, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -23,7 +23,7 @@ function require_admin(): void {
 
 function inbox_query(array $extra = []): string {
   $status = (string) ($extra['status'] ?? $_GET['status'] ?? 'all');
-  if (!in_array($status, ['all', 'unread', 'read', 'hidden'], true)) {
+  if (!in_array($status, ['all', 'unread', 'read', 'starred', 'hidden'], true)) {
     $status = 'all';
   }
   $page = max(1, (int) ($extra['page'] ?? $_GET['page'] ?? 1));
@@ -80,6 +80,22 @@ if ($action === 'unhide' && admin_logged_in() && isset($_GET['id'])) {
   exit;
 }
 
+if ($action === 'star' && admin_logged_in() && isset($_GET['id'])) {
+  $pdo = contact_pdo();
+  $stmt = $pdo->prepare('UPDATE contact_messages SET is_starred = 1 WHERE id = :id');
+  $stmt->execute([':id' => (string) $_GET['id']]);
+  header('Location: ' . inbox_query());
+  exit;
+}
+
+if ($action === 'unstar' && admin_logged_in() && isset($_GET['id'])) {
+  $pdo = contact_pdo();
+  $stmt = $pdo->prepare('UPDATE contact_messages SET is_starred = 0 WHERE id = :id');
+  $stmt->execute([':id' => (string) $_GET['id']]);
+  header('Location: ' . inbox_query());
+  exit;
+}
+
 require_admin();
 $pdo = contact_pdo();
 
@@ -93,9 +109,18 @@ if (!$col) {
   );
 }
 
+$colStar = $pdo->query("SHOW COLUMNS FROM contact_messages LIKE 'is_starred'")->fetch();
+if (!$colStar) {
+  $pdo->exec(
+    'ALTER TABLE contact_messages
+     ADD COLUMN is_starred TINYINT(1) NOT NULL DEFAULT 0 AFTER is_hidden,
+     ADD KEY idx_contact_messages_starred (is_starred, created_at)'
+  );
+}
+
 $pageSize = 10;
 $status = (string) ($_GET['status'] ?? 'all');
-if (!in_array($status, ['all', 'unread', 'read', 'hidden'], true)) {
+if (!in_array($status, ['all', 'unread', 'read', 'starred', 'hidden'], true)) {
   $status = 'all';
 }
 $page = max(1, (int) ($_GET['page'] ?? 1));
@@ -103,6 +128,8 @@ $q = trim(mb_substr((string) ($_GET['q'] ?? ''), 0, 120));
 
 if ($status === 'hidden') {
   $where = 'WHERE is_hidden = 1';
+} elseif ($status === 'starred') {
+  $where = 'WHERE is_hidden = 0 AND is_starred = 1';
 } elseif ($status === 'unread') {
   $where = 'WHERE is_hidden = 0 AND is_read = 0';
 } elseif ($status === 'read') {
@@ -128,7 +155,7 @@ if ($page > $totalPages) {
 $offset = ($page - 1) * $pageSize;
 
 $stmt = $pdo->prepare(
-  "SELECT id, name, email, subject, message, is_read, is_hidden, created_at
+  "SELECT id, name, email, subject, message, is_read, is_hidden, is_starred, created_at
    FROM contact_messages
    {$where}
    ORDER BY created_at DESC
@@ -191,7 +218,10 @@ $visibleTotal = (int) $pdo->query(
     .search .hint { font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
     .card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; margin-bottom: 0.85rem; }
     .card.unread { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); box-shadow: inset 3px 0 0 var(--accent); }
-    .meta { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; font-size: 0.82rem; color: var(--muted); margin-bottom: 0.55rem; }
+    .card.starred { background: color-mix(in srgb, #f59e0b 6%, #fff); }
+    .star { color: #d97706; text-decoration: none; font-size: 1.1rem; line-height: 1; }
+    .star.off { color: var(--muted); }
+    .meta { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; font-size: 0.82rem; color: var(--muted); margin-bottom: 0.55rem; align-items: center; }
     .meta strong { color: #15201c; }
     .meta a { color: var(--accent); }
     .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
@@ -223,7 +253,7 @@ $visibleTotal = (int) $pdo->query(
   <main>
     <div class="toolbar">
       <div class="filters" role="tablist" aria-label="Filter messages">
-        <?php foreach (['all' => 'All', 'unread' => 'Unread', 'read' => 'Read', 'hidden' => 'Hidden'] as $value => $label): ?>
+        <?php foreach (['all' => 'All', 'unread' => 'Unread', 'read' => 'Read', 'starred' => 'Starred', 'hidden' => 'Hidden'] as $value => $label): ?>
           <a
             role="tab"
             aria-selected="<?= $status === $value ? 'true' : 'false' ?>"
@@ -262,8 +292,14 @@ $visibleTotal = (int) $pdo->query(
     <?php endif; ?>
 
     <?php foreach ($messages as $m): ?>
-      <article class="card<?= empty($m['is_read']) ? ' unread' : '' ?>">
+      <?php $isStarred = !empty($m['is_starred']); ?>
+      <article class="card<?= empty($m['is_read']) ? ' unread' : '' ?><?= $isStarred ? ' starred' : '' ?>">
         <div class="meta">
+          <?php if ($isStarred): ?>
+            <a class="star" href="<?= h(inbox_query(['action' => 'unstar', 'id' => (string) $m['id']])) ?>" title="Remove star">★</a>
+          <?php else: ?>
+            <a class="star off" href="<?= h(inbox_query(['action' => 'star', 'id' => (string) $m['id']])) ?>" title="Star message">☆</a>
+          <?php endif; ?>
           <strong><?= h((string) $m['name']) ?></strong>
           <a href="mailto:<?= h((string) $m['email']) ?>"><?= h((string) $m['email']) ?></a>
           <span><?= h((string) $m['created_at']) ?></span>

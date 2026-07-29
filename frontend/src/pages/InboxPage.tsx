@@ -13,10 +13,11 @@ type Message = {
   message: string;
   isRead: boolean;
   isHidden: boolean;
+  isStarred: boolean;
   createdAt: string;
 };
 
-type StatusFilter = 'all' | 'unread' | 'read' | 'hidden';
+type StatusFilter = 'all' | 'unread' | 'read' | 'starred' | 'hidden';
 
 const PAGE_SIZE = 10;
 const SEARCH_DEBOUNCE_MS = 400;
@@ -149,6 +150,27 @@ export function InboxPage() {
     }
   }
 
+  async function toggleStar(id: string, starred: boolean) {
+    setBusyId(id);
+    try {
+      if (starred) {
+        await api.unstarContactMessage(id);
+        setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, isStarred: false } : m)));
+        if (status === 'starred') {
+          if (messages.length === 1 && page > 1) setPage((p) => p - 1);
+          else setReloadToken((n) => n + 1);
+        }
+      } else {
+        await api.starContactMessage(id);
+        setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, isStarred: true } : m)));
+      }
+    } catch (err) {
+      toast.error('Star update failed', err instanceof Error ? err.message : 'Try again');
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   function changeStatus(next: StatusFilter) {
     setStatus(next);
     setPage(1);
@@ -177,9 +199,7 @@ export function InboxPage() {
             {contactEnabled
               ? loading
                 ? 'Loading…'
-                : `${unreadCount} unread · ${total} ${status === 'hidden' ? 'hidden' : 'shown'}${
-                    debouncedQ ? ` · search` : ''
-                  }`
+                : `${unreadCount} unread · ${total} ${status === 'hidden' ? 'hidden' : status === 'starred' ? 'starred' : 'shown'}${debouncedQ ? ' · search' : ''}`
               : 'Enable the Adawwa contact form in Plugins to receive messages here.'}
           </p>
         </div>
@@ -219,6 +239,7 @@ export function InboxPage() {
                   ['all', 'All'],
                   ['unread', 'Unread'],
                   ['read', 'Read'],
+                  ['starred', 'Starred'],
                   ['hidden', 'Hidden'],
                 ] as const
               ).map(([value, label]) => (
@@ -259,8 +280,21 @@ export function InboxPage() {
 
           <div className={`inbox-list${loading ? ' is-loading' : ''}`}>
             {messages.map((m) => (
-              <article key={m.id} className={`inbox-card${m.isRead ? '' : ' unread'}`}>
+              <article
+                key={m.id}
+                className={`inbox-card${m.isRead ? '' : ' unread'}${m.isStarred ? ' starred' : ''}`}
+              >
                 <div className="inbox-meta">
+                  <button
+                    type="button"
+                    className={`inbox-star${m.isStarred ? ' is-on' : ''}`}
+                    aria-label={m.isStarred ? 'Remove star' : 'Star message'}
+                    aria-pressed={m.isStarred}
+                    disabled={busyId === m.id}
+                    onClick={() => void toggleStar(m.id, m.isStarred)}
+                  >
+                    {m.isStarred ? '★' : '☆'}
+                  </button>
                   <strong>{m.name}</strong>
                   <a href={`mailto:${m.email}`}>{m.email}</a>
                   <span>{new Date(m.createdAt).toLocaleString()}</span>

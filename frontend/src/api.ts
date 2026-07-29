@@ -238,7 +238,7 @@ export const api = {
   listContactMessages: (opts?: {
     page?: number;
     pageSize?: number;
-    status?: 'all' | 'unread' | 'read' | 'hidden';
+    status?: 'all' | 'unread' | 'read' | 'hidden' | 'starred';
     q?: string;
   }) => {
     const page = opts?.page ?? 1;
@@ -266,6 +266,7 @@ export const api = {
         message: string;
         isRead: boolean;
         isHidden: boolean;
+        isStarred: boolean;
         createdAt: string;
       }>;
     }>(`/api/portfolio/messages?${qs.toString()}`);
@@ -282,4 +283,14 @@ export const api = {
     request<{ ok: boolean }>(`/api/portfolio/messages/${encodeURIComponent(id)}/unhide`, {
       method: 'PATCH',
     }),
+  starContactMessage: (id: string) =>
+    request<{ ok: boolean; isStarred: boolean }>(
+      `/api/portfolio/messages/${encodeURIComponent(id)}/star`,
+      { method: 'PATCH' }
+    ),
+  unstarContactMessage: (id: string) =>
+    request<{ ok: boolean; isStarred: boolean }>(
+      `/api/portfolio/messages/${encodeURIComponent(id)}/unstar`,
+      { method: 'PATCH' }
+    ),
 };

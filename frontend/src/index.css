@@ -3009,6 +3009,30 @@ legend {
   box-shadow: inset 3px 0 0 var(--accent);
 }
 
+.inbox-card.starred {
+  background: color-mix(in srgb, #f59e0b 6%, var(--surface));
+}
+
+.inbox-star {
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.inbox-star.is-on {
+  color: #d97706;
+}
+
+.inbox-star:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .inbox-meta {
   display: flex;
   flex-wrap: wrap;

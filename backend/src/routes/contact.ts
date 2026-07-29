@@ -186,6 +186,8 @@ router.get(
 
     if (status === 'hidden') {
       where += ' AND is_hidden = 1';
+    } else if (status === 'starred') {
+      where += ' AND is_hidden = 0 AND is_starred = 1';
     } else {
       where += ' AND is_hidden = 0';
       if (status === 'unread') where += ' AND is_read = 0';
@@ -216,10 +218,11 @@ router.get(
         message: string;
         is_read: number | boolean;
         is_hidden: number | boolean;
+        is_starred: number | boolean;
         created_at: Date | string;
       }>
     >(
-      `SELECT id, name, email, subject, message, is_read, is_hidden, created_at
+      `SELECT id, name, email, subject, message, is_read, is_hidden, is_starred, created_at
        FROM contact_messages
        WHERE ${where}
        ORDER BY created_at DESC
@@ -248,6 +251,7 @@ router.get(
         message: m.message,
         isRead: Boolean(m.is_read),
         isHidden: Boolean(m.is_hidden),
+        isStarred: Boolean(m.is_starred),
         createdAt: m.created_at,
       })),
     });
@@ -326,6 +330,56 @@ router.patch(
       return res.status(404).json({ error: 'Message not found' });
     }
     return res.json({ ok: true });
+  })
+);
+
+router.patch(
+  '/portfolio/messages/:id/star',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const portfolios = await query<{ id: string }[]>(
+      'SELECT id FROM portfolios WHERE user_id = :userId LIMIT 1',
+      { userId: req.user!.id }
+    );
+    if (!portfolios.length) {
+      return res.status(404).json({ error: 'Portfolio not found' });
+    }
+
+    const result = await query<ResultSetHeader>(
+      `UPDATE contact_messages
+       SET is_starred = 1
+       WHERE id = :id AND portfolio_id = :portfolioId`,
+      { id: req.params.id, portfolioId: portfolios[0].id }
+    );
+    if (!result.affectedRows) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+    return res.json({ ok: true, isStarred: true });
+  })
+);
+
+router.patch(
+  '/portfolio/messages/:id/unstar',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const portfolios = await query<{ id: string }[]>(
+      'SELECT id FROM portfolios WHERE user_id = :userId LIMIT 1',
+      { userId: req.user!.id }
+    );
+    if (!portfolios.length) {
+      return res.status(404).json({ error: 'Portfolio not found' });
+    }
+
+    const result = await query<ResultSetHeader>(
+      `UPDATE contact_messages
+       SET is_starred = 0
+       WHERE id = :id AND portfolio_id = :portfolioId`,
+      { id: req.params.id, portfolioId: portfolios[0].id }
+    );
+    if (!result.affectedRows) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+    return res.json({ ok: true, isStarred: false });
   })
 );
 
