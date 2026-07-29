@@ -31,7 +31,7 @@ export function HomePage() {
         <div className="home-hero-copy">
           <div className="home-brand-row">
             <img className="home-brand-logo" src="/logo-mark.png" alt="" width={40} height={40} />
-            <p className="home-brand">PortfolioGen</p>
+            <p className="home-brand">Adawwa</p>
           </div>
           <h1>Build a portfolio you can publish today</h1>
           <p className="home-lead">
@@ -62,7 +62,9 @@ export function HomePage() {
             </div>
             <div className="home-mock-body">
               <div className="home-mock-top">
-                <div className="home-mock-avatar" />
+                <div className="home-mock-avatar">
+                  <img src="/logo-mark.png" alt="" width={56} height={56} />
+                </div>
                 <div className="home-mock-intro">
                   <strong>Alex Rivera</strong>
                   <span>Product engineer</span>

@@ -237,7 +237,7 @@ export function buildCvPdf(portfolio: PortfolioData): Promise<Buffer> {
       info: {
         Title: `${portfolio.personal.fullName || 'Portfolio'} — CV`,
         Author: portfolio.personal.fullName || 'Portfolio',
-        Creator: 'Portfolio Generator',
+        Creator: 'Adawwa',
       },
     });
 

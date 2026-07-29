@@ -32,7 +32,7 @@ export function RegisterPage() {
   return (
     <main className="auth-card">
       <NoIndex />
-      <p className="auth-kicker">PortfolioGen</p>
+      <p className="auth-kicker">Adawwa</p>
       <h1>Create account</h1>
       <p className="muted">Username and password only — free to start.</p>
       <form onSubmit={onSubmit}>
@@ -87,7 +87,7 @@ export function LoginPage() {
   return (
     <main className="auth-card">
       <NoIndex />
-      <p className="auth-kicker">PortfolioGen</p>
+      <p className="auth-kicker">Adawwa</p>
       <h1>Log in</h1>
       <p className="muted">Welcome back — continue to your dashboard.</p>
       <form onSubmit={onSubmit}>

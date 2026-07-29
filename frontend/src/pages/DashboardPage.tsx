@@ -113,16 +113,6 @@ export function DashboardPage() {
     ? `${window.location.origin}/portfolio/${portfolio.userRoute}`
     : null;
 
-  const checklist = [
-    { done: Boolean(portfolio.personal.fullName), label: 'Add your name' },
-    { done: hasRoute, label: 'Set public route' },
-    { done: (portfolio.skills?.length || 0) > 0, label: 'Add skills' },
-    { done: (portfolio.projects?.length || 0) > 0, label: 'Add at least one project' },
-    { done: isLive, label: 'Publish or download' },
-  ];
-
-  const readyScore = checklist.filter((c) => c.done).length;
-
   return (
     <main className="dashboard-page">
       <NoIndex />
@@ -247,22 +237,6 @@ export function DashboardPage() {
               Publish now
             </button>
           )}
-        </section>
-
-        <section className="dashboard-card checklist-card">
-          <div className="dashboard-card-icon checklist">✓</div>
-          <h3>Setup progress</h3>
-          <p className="checklist-score">
-            {readyScore} of {checklist.length} complete
-          </p>
-          <ul className="dashboard-checklist">
-            {checklist.map((item) => (
-              <li key={item.label} className={item.done ? 'done' : ''}>
-                <span className="check-icon">{item.done ? '✓' : '○'}</span>
-                {item.label}
-              </li>
-            ))}
-          </ul>
         </section>
       </div>
 
