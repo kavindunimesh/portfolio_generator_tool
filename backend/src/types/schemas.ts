@@ -86,6 +86,22 @@ export const portfolioUpdateSchema = z.object({
       experience: z.string().max(80).default(''),
     })
     .default({}),
+  seo: z
+    .object({
+      title: z.string().max(120).default(''),
+      description: z.string().max(320).default(''),
+      keywords: z.string().max(300).default(''),
+      ogTitle: z.string().max(120).default(''),
+      ogDescription: z.string().max(320).default(''),
+      ogImageUrl: z.string().url().or(z.literal('')).optional().default(''),
+      faviconUrl: z.string().url().or(z.literal('')).optional().default(''),
+      twitterCard: z.enum(['summary', 'summary_large_image']).default('summary_large_image'),
+      canonicalUrl: z.string().url().or(z.literal('')).optional().default(''),
+      robots: z
+        .enum(['index,follow', 'noindex,nofollow', 'noindex,follow', 'index,nofollow'])
+        .default('index,follow'),
+    })
+    .default({}),
   theme: z
     .object({
       primaryColor: z.string().max(32).default('#0F766E'),

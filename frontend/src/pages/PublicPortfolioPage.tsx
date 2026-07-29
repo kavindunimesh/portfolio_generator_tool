@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, type Portfolio } from '../api';
+import { DocumentMeta } from '../components/DocumentMeta';
 import { NoIndex } from '../components/NoIndex';
 import { PortfolioView } from '../components/portfolio/PortfolioView';
+import { stripMarkdown } from '../lib/markdown';
 
 export function PublicPortfolioPage() {
   const { userRoute = '' } = useParams();
@@ -18,6 +20,30 @@ export function PublicPortfolioPage() {
       .catch((err) => setError(err instanceof Error ? err.message : 'Not found'))
       .finally(() => setLoading(false));
   }, [userRoute]);
+
+  const seo = useMemo(() => {
+    if (!portfolio) return null;
+    const { personal, seo: tags } = portfolio;
+    const defaultTitle = personal.fullName
+      ? `${personal.fullName}${personal.headline ? ` — ${personal.headline}` : ''}`
+      : 'Portfolio';
+    const pageTitle = tags?.title?.trim() || defaultTitle;
+    const metaDescription =
+      tags?.description?.trim() ||
+      stripMarkdown(personal.bio || '').slice(0, 155) ||
+      `${personal.fullName || 'Portfolio'} portfolio`;
+    return {
+      title: pageTitle,
+      description: metaDescription,
+      keywords: tags?.keywords?.trim() || '',
+      ogTitle: tags?.ogTitle?.trim() || pageTitle,
+      ogDescription: tags?.ogDescription?.trim() || metaDescription,
+      ogImageUrl: tags?.ogImageUrl?.trim() || personal.avatarUrl || '',
+      faviconUrl: tags?.faviconUrl?.trim() || '',
+      twitterCard: tags?.twitterCard || 'summary_large_image',
+      canonicalUrl: tags?.canonicalUrl?.trim() || '',
+    };
+  }, [portfolio]);
 
   if (loading) {
     return (
@@ -47,6 +73,7 @@ export function PublicPortfolioPage() {
   return (
     <>
       <NoIndex />
+      {seo && <DocumentMeta {...seo} />}
       <PortfolioView portfolio={portfolio} />
     </>
   );

@@ -3,12 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{{fullName}}{{#if headline}} — {{headline}}{{/if}}</title>
+  {{#if faviconUrl}}<link rel="icon" href="{{faviconUrl}}" type="image/png" />
+  <link rel="apple-touch-icon" href="{{faviconUrl}}" />{{/if}}
+  <title>{{pageTitle}}</title>
   <meta name="description" content="{{metaDescription}}" />
-  <meta property="og:title" content="{{fullName}}{{#if headline}} — {{headline}}{{/if}}" />
-  <meta property="og:description" content="{{metaDescription}}" />
-  {{#if avatarUrl}}<meta property="og:image" content="{{avatarUrl}}" />{{/if}}
-  <meta name="twitter:card" content="summary" />
+  {{#if metaKeywords}}<meta name="keywords" content="{{metaKeywords}}" />{{/if}}
+  <meta name="robots" content="{{robots}}" />
+  {{#if canonicalUrl}}<link rel="canonical" href="{{canonicalUrl}}" />{{/if}}
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="{{ogTitle}}" />
+  <meta property="og:description" content="{{ogDescription}}" />
+  {{#if ogImageUrl}}<meta property="og:image" content="{{ogImageUrl}}" />{{/if}}
+  <meta name="twitter:card" content="{{twitterCard}}" />
+  <meta name="twitter:title" content="{{ogTitle}}" />
+  <meta name="twitter:description" content="{{ogDescription}}" />
+  {{#if ogImageUrl}}<meta name="twitter:image" content="{{ogImageUrl}}" />{{/if}}
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />

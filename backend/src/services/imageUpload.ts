@@ -8,7 +8,7 @@ export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
-type UploadPurpose = 'avatar' | 'project' | 'logo';
+type UploadPurpose = 'avatar' | 'project' | 'logo' | 'favicon';
 
 type UserUploadRow = {
   id: string;
@@ -63,6 +63,24 @@ export async function compressImage(
   buffer: Buffer,
   purpose: UploadPurpose
 ): Promise<{ buffer: Buffer; mimeType: string; extension: string }> {
+  if (purpose === 'favicon') {
+    let output = await sharp(buffer, { failOn: 'none' })
+      .rotate()
+      .resize({ width: 64, height: 64, fit: 'cover' })
+      .png({ compressionLevel: 9 })
+      .toBuffer();
+
+    if (output.length > 24_000) {
+      output = await sharp(buffer, { failOn: 'none' })
+        .rotate()
+        .resize({ width: 48, height: 48, fit: 'cover' })
+        .png({ compressionLevel: 9 })
+        .toBuffer();
+    }
+
+    return { buffer: output, mimeType: 'image/png', extension: '.png' };
+  }
+
   const image = sharp(buffer, { failOn: 'none' }).rotate();
   const metadata = await image.metadata();
 
@@ -132,18 +150,18 @@ export async function uploadUserImage(params: {
   let freedBytes = 0;
   if (replaceUrl) {
     freedBytes = await deleteUserUpload(userId, replaceUrl);
-  } else if (purpose === 'avatar') {
-    const avatarRows = await query<UserUploadRow[]>(
+  } else if (purpose === 'avatar' || purpose === 'favicon') {
+    const oldRows = await query<UserUploadRow[]>(
       `SELECT id, object_key, size_bytes
        FROM user_uploads
-       WHERE user_id = :userId AND purpose = 'avatar'`,
-      { userId }
+       WHERE user_id = :userId AND purpose = :purpose`,
+      { userId, purpose }
     );
-    for (const row of avatarRows) {
+    for (const row of oldRows) {
       try {
         await deleteFromR2(row.object_key);
       } catch (err) {
-        console.error('Failed to delete old avatar from R2:', err);
+        console.error(`Failed to delete old ${purpose} from R2:`, err);
       }
       await removeUploadRecord(userId, row.id);
       freedBytes += row.size_bytes;

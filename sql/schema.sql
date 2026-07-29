@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS user_uploads (
   public_url VARCHAR(512) NOT NULL,
   size_bytes INT UNSIGNED NOT NULL,
   mime_type VARCHAR(64) NOT NULL DEFAULT 'image/webp',
-  purpose ENUM('avatar','project','logo') NOT NULL DEFAULT 'project',
+  purpose ENUM('avatar','project','logo','favicon') NOT NULL DEFAULT 'project',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uq_user_uploads_object_key (object_key),
   KEY idx_user_uploads_user_id (user_id),

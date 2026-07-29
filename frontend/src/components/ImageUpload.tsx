@@ -5,7 +5,7 @@ import { useToast } from '../toast';
 type ImageUploadProps = {
   label: string;
   value: string;
-  purpose: 'avatar' | 'project' | 'logo';
+  purpose: 'avatar' | 'project' | 'logo' | 'favicon';
   onChange: (url: string) => void;
   previewClassName?: string;
   compact?: boolean;

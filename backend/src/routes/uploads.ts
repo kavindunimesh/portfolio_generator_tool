@@ -68,7 +68,13 @@ router.post(
     }
 
     const purpose =
-      req.body.purpose === 'avatar' ? 'avatar' : req.body.purpose === 'logo' ? 'logo' : 'project';
+      req.body.purpose === 'avatar'
+        ? 'avatar'
+        : req.body.purpose === 'logo'
+          ? 'logo'
+          : req.body.purpose === 'favicon'
+            ? 'favicon'
+            : 'project';
     const replaceUrl = typeof req.body.replaceUrl === 'string' ? req.body.replaceUrl.trim() : '';
 
     try {

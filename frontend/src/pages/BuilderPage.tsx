@@ -28,10 +28,11 @@ type FormState = {
   education: Portfolio['education'];
   experience: ExperienceItem[];
   sectionTitles: Portfolio['sectionTitles'];
+  seo: Portfolio['seo'];
   theme: Portfolio['theme'];
 };
 
-type TabId = 'profile' | 'experience' | 'education' | 'skills' | 'projects' | 'socials' | 'design';
+type TabId = 'profile' | 'experience' | 'education' | 'skills' | 'projects' | 'socials' | 'seo' | 'design';
 
 const TABS: { id: TabId; label: string; desc: string }[] = [
   { id: 'profile', label: 'Profile', desc: 'Name, bio & contact' },
@@ -40,6 +41,7 @@ const TABS: { id: TabId; label: string; desc: string }[] = [
   { id: 'skills', label: 'Skills', desc: 'What you know' },
   { id: 'projects', label: 'Projects', desc: 'Your work' },
   { id: 'socials', label: 'Socials', desc: 'Online links' },
+  { id: 'seo', label: 'SEO', desc: 'Meta & sharing' },
   { id: 'design', label: 'Design', desc: 'Route, template & theme' },
 ];
 
@@ -82,6 +84,18 @@ const emptyForm: FormState = {
   education: [{ ...emptyEducation }],
   experience: [emptyExperience()],
   sectionTitles: { about: '', skills: '', projects: '', education: '', experience: '' },
+  seo: {
+    title: '',
+    description: '',
+    keywords: '',
+    ogTitle: '',
+    ogDescription: '',
+    ogImageUrl: '',
+    faviconUrl: '',
+    twitterCard: 'summary_large_image',
+    canonicalUrl: '',
+    robots: 'index,follow',
+  },
   theme: { primaryColor: '#0F766E', mode: 'light' },
 };
 
@@ -135,6 +149,7 @@ function fromPortfolio(p: Portfolio): FormState {
         }))
       : [emptyExperience()],
     sectionTitles: { ...emptyForm.sectionTitles, ...p.sectionTitles },
+    seo: { ...emptyForm.seo, ...p.seo },
     theme: { ...p.theme },
   };
 }
@@ -249,6 +264,7 @@ export function BuilderPage() {
         education,
         experience,
         sectionTitles: form.sectionTitles,
+        seo: form.seo,
         theme: form.theme,
       });
       await refresh();
@@ -907,6 +923,151 @@ export function BuilderPage() {
                   ))}
                 </div>
                 <TabSaveBar label="Socials" />
+              </section>
+            )}
+
+            {activeTab === 'seo' && (
+              <section className="builder-section">
+                <h2>SEO & sharing</h2>
+                <p className="section-desc">
+                  Control page title, meta description, Open Graph and Twitter cards for your ZIP download.
+                  Leave blank to auto-fill from your name, headline and bio.
+                </p>
+                <div className="form-grid">
+                  <label className="span-2">
+                    Page title
+                    <input
+                      value={form.seo.title}
+                      onChange={(e) => setForm({ ...form, seo: { ...form.seo, title: e.target.value } })}
+                      placeholder={`${form.personal.fullName || 'Your Name'}${form.personal.headline ? ` — ${form.personal.headline}` : ''}`}
+                      maxLength={120}
+                    />
+                    <span className="char-count">{form.seo.title.length}/120</span>
+                  </label>
+                  <label className="span-2">
+                    Meta description
+                    <textarea
+                      value={form.seo.description}
+                      onChange={(e) =>
+                        setForm({ ...form, seo: { ...form.seo, description: e.target.value } })
+                      }
+                      placeholder="Short summary for search results (about 150–160 characters)"
+                      rows={3}
+                      maxLength={320}
+                    />
+                    <span className="char-count">{form.seo.description.length}/320</span>
+                  </label>
+                  <label className="span-2">
+                    Keywords (comma-separated)
+                    <input
+                      value={form.seo.keywords}
+                      onChange={(e) =>
+                        setForm({ ...form, seo: { ...form.seo, keywords: e.target.value } })
+                      }
+                      placeholder="designer, portfolio, ui ux, sri lanka"
+                      maxLength={300}
+                    />
+                  </label>
+                  <label>
+                    Robots
+                    <select
+                      value={form.seo.robots}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          seo: {
+                            ...form.seo,
+                            robots: e.target.value as Portfolio['seo']['robots'],
+                          },
+                        })
+                      }
+                    >
+                      <option value="index,follow">Index, follow</option>
+                      <option value="noindex,nofollow">No index, no follow</option>
+                      <option value="noindex,follow">No index, follow</option>
+                      <option value="index,nofollow">Index, no follow</option>
+                    </select>
+                  </label>
+                  <label>
+                    Canonical URL
+                    <input
+                      value={form.seo.canonicalUrl}
+                      onChange={(e) =>
+                        setForm({ ...form, seo: { ...form.seo, canonicalUrl: e.target.value } })
+                      }
+                      placeholder="https://yoursite.com/"
+                    />
+                  </label>
+                  <label>
+                    Open Graph title
+                    <input
+                      value={form.seo.ogTitle}
+                      onChange={(e) =>
+                        setForm({ ...form, seo: { ...form.seo, ogTitle: e.target.value } })
+                      }
+                      placeholder="Defaults to page title"
+                      maxLength={120}
+                    />
+                  </label>
+                  <label>
+                    Twitter card
+                    <select
+                      value={form.seo.twitterCard}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          seo: {
+                            ...form.seo,
+                            twitterCard: e.target.value as Portfolio['seo']['twitterCard'],
+                          },
+                        })
+                      }
+                    >
+                      <option value="summary_large_image">Summary large image</option>
+                      <option value="summary">Summary</option>
+                    </select>
+                  </label>
+                  <label className="span-2">
+                    Open Graph description
+                    <textarea
+                      value={form.seo.ogDescription}
+                      onChange={(e) =>
+                        setForm({ ...form, seo: { ...form.seo, ogDescription: e.target.value } })
+                      }
+                      placeholder="Defaults to meta description"
+                      rows={2}
+                      maxLength={320}
+                    />
+                  </label>
+                  <div className="span-2">
+                    <ImageUpload
+                      label="Favicon"
+                      purpose="favicon"
+                      compact
+                      value={form.seo.faviconUrl || ''}
+                      onChange={(faviconUrl) =>
+                        setForm({ ...form, seo: { ...form.seo, faviconUrl } })
+                      }
+                    />
+                    <p className="section-desc" style={{ marginTop: '0.5rem' }}>
+                      Small square icon for browser tabs. PNG/JPG works; it will be resized to 64×64.
+                    </p>
+                  </div>
+                  <div className="span-2">
+                    <ImageUpload
+                      label="Share / OG image"
+                      purpose="project"
+                      value={form.seo.ogImageUrl || ''}
+                      onChange={(ogImageUrl) =>
+                        setForm({ ...form, seo: { ...form.seo, ogImageUrl } })
+                      }
+                    />
+                    <p className="section-desc" style={{ marginTop: '0.5rem' }}>
+                      Used for social previews. Falls back to your profile photo if empty.
+                    </p>
+                  </div>
+                </div>
+                <TabSaveBar label="SEO" />
               </section>
             )}
 

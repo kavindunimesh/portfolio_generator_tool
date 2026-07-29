@@ -57,6 +57,18 @@ export type Portfolio = {
     education: string;
     experience: string;
   };
+  seo: {
+    title: string;
+    description: string;
+    keywords: string;
+    ogTitle: string;
+    ogDescription: string;
+    ogImageUrl: string;
+    faviconUrl: string;
+    twitterCard: 'summary' | 'summary_large_image';
+    canonicalUrl: string;
+    robots: 'index,follow' | 'noindex,nofollow' | 'noindex,follow' | 'index,nofollow';
+  };
   theme: {
     primaryColor: string;
     mode: 'light' | 'dark';
@@ -130,7 +142,7 @@ export const api = {
     request<Portfolio>(`/api/public/portfolios/${encodeURIComponent(userRoute)}`),
   uploadQuota: () =>
     request<{ usedBytes: number; maxBytes: number; remainingBytes: number }>('/api/uploads/quota'),
-  uploadImage: async (file: File, purpose: 'avatar' | 'project' | 'logo', replaceUrl?: string) => {
+  uploadImage: async (file: File, purpose: 'avatar' | 'project' | 'logo' | 'favicon', replaceUrl?: string) => {
     const form = new FormData();
     form.append('file', file);
     form.append('purpose', purpose);

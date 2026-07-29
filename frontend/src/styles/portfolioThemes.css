@@ -938,6 +938,8 @@
   border-radius: 1.35rem;
   overflow: hidden;
   height: 100%;
+  display: flex;
+  flex-direction: column;
   transition:
     transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 0.35s ease,
@@ -952,6 +954,10 @@
 }
 .pf-minimal .card-body {
   padding: 1.25rem 1.3rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 .pf-minimal .card h3 {
   margin: 0 0 0.4rem;
@@ -962,6 +968,23 @@
 .pf-minimal .card p {
   margin: 0 0 0.85rem;
   color: var(--muted);
+}
+.pf-minimal .card-body .chips {
+  margin-top: 0.75rem;
+  margin-bottom: 0;
+}
+.pf-minimal .card-body .link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  position: relative;
+  align-self: flex-end;
+  margin-top: auto;
+  padding-top: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--accent);
+  transition: color 0.25s ease, gap 0.28s ease, transform 0.25s ease;
 }
 .pf-minimal .link {
   display: inline-flex;

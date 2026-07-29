@@ -217,32 +217,61 @@ function ProjectCards({
               {String(index + 1).padStart(2, '0')}
             </div>
           )}
-          <div className={showIndex ? 'card-main' : undefined}>
-            {p.imageUrl &&
-              (imageWrapClass ? (
-                <div className={imageWrapClass}>
+          {showIndex ? (
+            <div className="card-main">
+              {p.imageUrl &&
+                (imageWrapClass ? (
+                  <div className={imageWrapClass}>
+                    <img className="project-image" src={p.imageUrl} alt={p.title} loading="lazy" />
+                  </div>
+                ) : (
                   <img className="project-image" src={p.imageUrl} alt={p.title} loading="lazy" />
-                </div>
-              ) : (
-                <img className="project-image" src={p.imageUrl} alt={p.title} loading="lazy" />
-              ))}
-            <div className="card-body">
-              <h3>{p.title}</h3>
-              {p.description && <MarkdownContent markdown={p.description} />}
-              {p.tech?.length > 0 && (
-                <ul className="chips small">
-                  {p.tech.map((t) => (
-                    <li key={t}>{t}</li>
-                  ))}
-                </ul>
-              )}
-              {p.link && (
-                <a className="link" href={p.link} rel="noopener noreferrer" target="_blank">
-                  {linkLabel}
-                </a>
-              )}
+                ))}
+              <div className="card-body">
+                <h3>{p.title}</h3>
+                {p.description && <MarkdownContent markdown={p.description} />}
+                {p.tech?.length > 0 && (
+                  <ul className="chips small">
+                    {p.tech.map((t) => (
+                      <li key={t}>{t}</li>
+                    ))}
+                  </ul>
+                )}
+                {p.link && (
+                  <a className="link" href={p.link} rel="noopener noreferrer" target="_blank">
+                    {linkLabel}
+                  </a>
+                )}
+              </div>
             </div>
-          </div>
+          ) : (
+            <>
+              {p.imageUrl &&
+                (imageWrapClass ? (
+                  <div className={imageWrapClass}>
+                    <img className="project-image" src={p.imageUrl} alt={p.title} loading="lazy" />
+                  </div>
+                ) : (
+                  <img className="project-image" src={p.imageUrl} alt={p.title} loading="lazy" />
+                ))}
+              <div className="card-body">
+                <h3>{p.title}</h3>
+                {p.description && <MarkdownContent markdown={p.description} />}
+                {p.tech?.length > 0 && (
+                  <ul className="chips small">
+                    {p.tech.map((t) => (
+                      <li key={t}>{t}</li>
+                    ))}
+                  </ul>
+                )}
+                {p.link && (
+                  <a className="link" href={p.link} rel="noopener noreferrer" target="_blank">
+                    {linkLabel}
+                  </a>
+                )}
+              </div>
+            </>
+          )}
         </article>
       ))}
     </div>

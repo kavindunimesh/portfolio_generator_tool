@@ -79,6 +79,18 @@ export function serializePortfolio(row: PortfolioRow) {
       education?: string;
       experience?: string;
     };
+    seo?: {
+      title?: string;
+      description?: string;
+      keywords?: string;
+      ogTitle?: string;
+      ogDescription?: string;
+      ogImageUrl?: string;
+      faviconUrl?: string;
+      twitterCard?: 'summary' | 'summary_large_image';
+      canonicalUrl?: string;
+      robots?: string;
+    };
     education?: EducationItem[];
     experience?: ExperienceItem[];
   }>(row.payload_json, {});
@@ -139,6 +151,19 @@ export function serializePortfolio(row: PortfolioRow) {
       experience: '',
       ...(payload.sectionTitles || {}),
     },
+    seo: {
+      title: '',
+      description: '',
+      keywords: '',
+      ogTitle: '',
+      ogDescription: '',
+      ogImageUrl: '',
+      faviconUrl: '',
+      twitterCard: 'summary_large_image' as const,
+      canonicalUrl: '',
+      robots: 'index,follow',
+      ...(payload.seo || {}),
+    },
     theme: {
       primaryColor: row.primary_color || '#0F766E',
       mode: (row.theme_mode as 'light' | 'dark') || 'light',
@@ -158,6 +183,18 @@ export function toTemplateContext(row: PortfolioRow) {
   const whatsappDigits = digitsOnly(data.personal.whatsapp || '');
   const plainBio = stripMarkdown(bio);
   const sectionTitles = resolveSectionTitles(data.templateSlug, data.sectionTitles);
+  const defaultTitle = data.personal.fullName
+    ? `${data.personal.fullName}${data.personal.headline ? ` — ${data.personal.headline}` : ''}`
+    : 'Portfolio';
+  const pageTitle = data.seo.title.trim() || defaultTitle;
+  const metaDescription =
+    data.seo.description.trim() ||
+    plainBio.slice(0, 155) ||
+    `${data.personal.fullName || 'Portfolio'} portfolio`;
+  const ogTitle = data.seo.ogTitle.trim() || pageTitle;
+  const ogDescription = data.seo.ogDescription.trim() || metaDescription;
+  const ogImageUrl = data.seo.ogImageUrl.trim() || data.personal.avatarUrl || '';
+  const faviconUrl = data.seo.faviconUrl.trim() || '';
   return {
     fullName: data.personal.fullName || 'Your Name',
     nameInitial: (data.personal.fullName || 'Y').charAt(0).toUpperCase(),
@@ -169,7 +206,16 @@ export function toTemplateContext(row: PortfolioRow) {
     headline: data.personal.headline || '',
     bio,
     bioHtml: markdownToHtml(bio),
-    metaDescription: plainBio.slice(0, 155) || `${data.personal.fullName} portfolio`,
+    pageTitle,
+    metaDescription,
+    metaKeywords: data.seo.keywords.trim(),
+    ogTitle,
+    ogDescription,
+    ogImageUrl,
+    faviconUrl,
+    twitterCard: data.seo.twitterCard || 'summary_large_image',
+    canonicalUrl: data.seo.canonicalUrl.trim(),
+    robots: data.seo.robots || 'index,follow',
     email: data.personal.email || '',
     phone: data.personal.phone || '',
     phoneHref: data.personal.phone ? `tel:${data.personal.phone.replace(/[^\d+]/g, '')}` : '',
