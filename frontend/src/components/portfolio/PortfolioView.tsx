@@ -651,6 +651,10 @@ export function PortfolioView({ portfolio }: Props) {
   }
 
   if (slug === 'aurora') {
+    const showAbout = Boolean(personal.bio);
+    const showWork = experience.length > 0 || education.length > 0;
+    const showProjects = projects.length > 0;
+
     return (
       <div className={rootClass} style={style}>
         <div className="aurora-bg" aria-hidden="true">
@@ -659,7 +663,14 @@ export function PortfolioView({ portfolio }: Props) {
           <span className="aurora-orb aurora-orb-c" />
           <span className="aurora-veil" />
         </div>
-        <header className="hero">
+        <PortfolioSiteNav
+          brand={personal.fullName.split(' ')[0] || 'Home'}
+          showAbout={showAbout}
+          showWork={showWork}
+          workHref={experience.length > 0 ? '#experience' : '#education'}
+          showProjects={showProjects}
+        />
+        <header className="hero" id="home">
           <div className="wrap hero-grid">
             <div className="hero-copy">
               <div className="hero-topline">
@@ -671,12 +682,35 @@ export function PortfolioView({ portfolio }: Props) {
               </div>
               <h1>{personal.fullName}</h1>
               {personal.headline && <p className="headline">{personal.headline}</p>}
-              <Socials
-                socials={socials}
-                email={personal.email}
-                phone={personal.phone}
-                whatsapp={personal.whatsapp}
-              />
+              <div className="hero-actions">
+                {(experience.length > 0 || education.length > 0 || projects.length > 0) && (
+                  <a
+                    className="hero-cta"
+                    href={
+                      experience.length > 0
+                        ? '#experience'
+                        : education.length > 0
+                          ? '#education'
+                          : '#projects'
+                    }
+                  >
+                    View my work
+                  </a>
+                )}
+                {personal.email && (
+                  <a className="hero-cta ghost" href={`mailto:${personal.email}`}>
+                    Say hello
+                  </a>
+                )}
+              </div>
+              <div id="contact">
+                <Socials
+                  socials={socials}
+                  email={undefined}
+                  phone={personal.phone}
+                  whatsapp={personal.whatsapp}
+                />
+              </div>
             </div>
             <div className="hero-visual">
               <div className="avatar-frame">
@@ -691,7 +725,7 @@ export function PortfolioView({ portfolio }: Props) {
         </header>
         <main id="main" className="wrap">
           {personal.bio && (
-            <section className="section panel">
+            <section className="section panel" id="about">
               <div className="section-head">
                 <h2>{titles.about}</h2>
               </div>
@@ -699,7 +733,7 @@ export function PortfolioView({ portfolio }: Props) {
             </section>
           )}
           {skills.length > 0 && (
-            <section className="section panel">
+            <section className="section panel skills-panel">
               <div className="section-head">
                 <h2>{titles.skills}</h2>
               </div>
@@ -712,18 +746,57 @@ export function PortfolioView({ portfolio }: Props) {
           )}
           <CareerSections titles={titles} experience={experience} education={education} />
           {projects.length > 0 && (
-            <section className="section">
+            <section className="section projects-panel" id="projects">
               <div className="section-head">
                 <h2>{titles.projects}</h2>
+                <span className="section-count">{projects.length} selected</span>
               </div>
-              <ProjectCards projects={projects} linkLabel="Explore" />
+              <div className="projects">
+                {projects.map((p, index) => (
+                  <article className="card" key={`${p.title}-${index}`}>
+                    <div className={`card-media${p.imageUrl ? '' : ' is-empty'}`}>
+                      {p.imageUrl ? (
+                        <img className="project-image" src={p.imageUrl} alt={p.title} loading="lazy" />
+                      ) : (
+                        <span className="card-media-fallback" aria-hidden="true">
+                          {String(index + 1).padStart(2, '0')}
+                        </span>
+                      )}
+                    </div>
+                    <div className="card-body">
+                      <div className="card-top">
+                        <h3>{p.title}</h3>
+                        {p.link && (
+                          <a className="link" href={p.link} rel="noopener noreferrer" target="_blank">
+                            Open ↗
+                          </a>
+                        )}
+                      </div>
+                      {p.description && <MarkdownContent markdown={p.description} />}
+                      {p.tech?.length > 0 && (
+                        <ul className="chips small">
+                          {p.tech.map((t) => (
+                            <li key={t}>{t}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
             </section>
           )}
         </main>
         <footer className="wrap footer">
-          <p>
-            © {year} {personal.fullName}
-          </p>
+          <div className="footer-inner">
+            <div>
+              <p className="footer-brand">{personal.fullName}</p>
+              <p className="footer-copy">© {year} · Crafted with Aurora</p>
+            </div>
+            <a className="footer-top" href="#home" aria-label="Back to top">
+              ↑
+            </a>
+          </div>
         </footer>
       </div>
     );
