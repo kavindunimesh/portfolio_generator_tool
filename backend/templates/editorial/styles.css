@@ -371,50 +371,107 @@ h2,
   margin: 1.25rem 0;
 }
 
-.timeline { display: grid; gap: 0; }
+.timeline {
+  display: grid;
+  gap: 0;
+  position: relative;
+}
 .timeline-item {
-  padding: 1.15rem 0 1.25rem 1.15rem;
+  display: grid;
+  grid-template-columns: 0.9rem minmax(0, 1fr);
+  column-gap: 0.9rem;
+  align-items: start;
+  padding: 0 0 1.35rem;
   border: 0;
   border-radius: 0;
-  border-bottom: 1px solid var(--line);
-  border-left: 3px solid color-mix(in srgb, var(--accent) 70%, var(--line));
   background: transparent;
 }
-.timeline-item:last-child { border-bottom: 0; }
-.timeline-head {
+.timeline-item:last-child { padding-bottom: 0.25rem; }
+.timeline-rail {
+  position: relative;
   display: flex;
-  justify-content: space-between;
-  gap: 0.85rem;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  margin-bottom: 0.35rem;
+  justify-content: center;
+  min-height: 100%;
+  padding-top: 0.45rem;
+}
+.timeline-rail::before {
+  content: "";
+  position: absolute;
+  top: 0.7rem;
+  bottom: -1.35rem;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.timeline-item:last-child .timeline-rail::before { display: none; }
+.timeline-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  flex-shrink: 0;
+  z-index: 1;
+}
+.timeline-body {
+  min-width: 0;
+  padding: 0.15rem 0 0.15rem;
 }
 .timeline-logo {
   width: 2.5rem;
   height: 2.5rem;
   object-fit: contain;
-  border-radius: 0.2rem;
-  border: 1px solid var(--line);
-  background: var(--card);
+  border-radius: 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  background: color-mix(in srgb, #fff 8%, transparent);
   flex-shrink: 0;
   padding: 0.2rem;
 }
-.timeline-copy { flex: 1 1 10rem; min-width: 0; }
-.timeline-item h3 { margin: 0; font-size: 1.05rem; letter-spacing: -0.02em; font-family: var(--font-display); }
-.timeline-org, .timeline-field {
-  margin: 0.2rem 0 0;
-  color: var(--muted);
-  font-size: 0.92rem;
+.timeline-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: none;
 }
-.timeline-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.2rem;
-  font-size: 0.82rem;
-  color: var(--muted);
-  text-align: right;
+.timeline-item h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+.timeline-org, .timeline-field {
+  margin: 0.28rem 0 0;
+  color: color-mix(in srgb, currentColor 65%, transparent);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+.timeline-sep { margin: 0 0.35rem; opacity: 0.55; }
+.timeline-loc { color: inherit; }
+.timeline-dates {
+  display: inline-flex;
+  align-items: center;
+  margin: 0.45rem 0 0;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: color-mix(in srgb, var(--accent) 78%, currentColor);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+  white-space: nowrap;
+  width: fit-content;
+  max-width: 100%;
+}
+.timeline-meta { display: none; }
+.timeline-dates {
+  border-radius: 0.15rem;
   font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.timeline-rail::before {
+  background: color-mix(in srgb, var(--accent) 55%, var(--line, var(--border)));
 }
 
 .socials {
@@ -528,14 +585,6 @@ h2,
 @media (max-width: 640px) {
   .social-btn { width: 2.35rem; height: 2.35rem; flex-basis: 2.35rem; }
   .contact-chip, .mail-link, .wa-link { flex: 1 1 100%; height: auto; min-height: 2.45rem; }
-  .timeline-head { flex-direction: column; align-items: stretch; gap: 0.65rem; }
-  .timeline-meta {
-    align-items: flex-start;
-    text-align: left;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 0.35rem 0.75rem;
-  }
 }
 @media (max-width: 480px) {
   .mast-row { flex-direction: column; align-items: flex-start; gap: 0.45rem; }

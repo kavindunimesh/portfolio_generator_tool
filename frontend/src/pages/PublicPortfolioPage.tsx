@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { api, type Portfolio } from '../api';
 import { DocumentMeta } from '../components/DocumentMeta';
 import { NoIndex } from '../components/NoIndex';
+import { PortfolioLoader, rememberPortfolioLoaderTheme } from '../components/portfolio/PortfolioLoader';
 import { PortfolioView } from '../components/portfolio/PortfolioView';
 import { stripMarkdown } from '../lib/markdown';
 
@@ -14,9 +15,17 @@ export function PublicPortfolioPage() {
 
   useEffect(() => {
     setLoading(true);
+    setError('');
+    setPortfolio(null);
     void api
       .publicPortfolio(userRoute)
-      .then(setPortfolio)
+      .then((data) => {
+        rememberPortfolioLoaderTheme(
+          data.templateSlug === 'developer' ? 'developer' : 'minimal',
+          userRoute,
+        );
+        setPortfolio(data);
+      })
       .catch((err) => setError(err instanceof Error ? err.message : 'Not found'))
       .finally(() => setLoading(false));
   }, [userRoute]);
@@ -47,13 +56,10 @@ export function PublicPortfolioPage() {
 
   if (loading) {
     return (
-      <div className="hosted-wrap">
-        <div className="loading-state">
-          <span className="spinner" />
-          Loading portfolio…
-        </div>
+      <>
         <NoIndex />
-      </div>
+        <PortfolioLoader userRoute={userRoute} />
+      </>
     );
   }
 

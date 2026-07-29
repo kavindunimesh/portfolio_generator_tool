@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Portfolio } from '../../api';
 import { getTemplate, resolveSectionTitles, type TemplateSlug } from '../../templates/catalog';
 import { MarkdownContent } from '../MarkdownContent';
@@ -59,6 +59,7 @@ function Socials({
               className="social-btn"
               href={socials.github}
               rel="noopener noreferrer"
+              target="_blank"
               title="GitHub"
               aria-label="GitHub"
             >
@@ -70,6 +71,7 @@ function Socials({
               className="social-btn"
               href={socials.linkedin}
               rel="noopener noreferrer"
+              target="_blank"
               title="LinkedIn"
               aria-label="LinkedIn"
             >
@@ -81,6 +83,7 @@ function Socials({
               className="social-btn"
               href={socials.website}
               rel="noopener noreferrer"
+              target="_blank"
               title="Website"
               aria-label="Website"
             >
@@ -92,6 +95,7 @@ function Socials({
               className="social-btn"
               href={socials.twitter}
               rel="noopener noreferrer"
+              target="_blank"
               title="Twitter / X"
               aria-label="Twitter / X"
             >
@@ -103,6 +107,7 @@ function Socials({
               className="social-btn"
               href={socials.facebook}
               rel="noopener noreferrer"
+              target="_blank"
               title="Facebook"
               aria-label="Facebook"
             >
@@ -114,6 +119,7 @@ function Socials({
               className="social-btn"
               href={socials.tiktok}
               rel="noopener noreferrer"
+              target="_blank"
               title="TikTok"
               aria-label="TikTok"
             >
@@ -125,6 +131,7 @@ function Socials({
               className="social-btn"
               href={socials.youtube}
               rel="noopener noreferrer"
+              target="_blank"
               title="YouTube"
               aria-label="YouTube"
             >
@@ -136,6 +143,7 @@ function Socials({
               className="social-btn"
               href={socials.instagram}
               rel="noopener noreferrer"
+              target="_blank"
               title="Instagram"
               aria-label="Instagram"
             >
@@ -147,6 +155,7 @@ function Socials({
               className="social-btn"
               href={socials.behance}
               rel="noopener noreferrer"
+              target="_blank"
               title="Behance"
               aria-label="Behance"
             >
@@ -158,6 +167,7 @@ function Socials({
               className="social-btn"
               href={socials.dribbble}
               rel="noopener noreferrer"
+              target="_blank"
               title="Dribbble"
               aria-label="Dribbble"
             >
@@ -294,20 +304,32 @@ function ExperienceList({ items }: { items: Portfolio['experience'] }) {
         const range = formatDateRange(item.startDate, item.endDate);
         return (
           <article className="timeline-item" key={`${item.company}-${item.role}-${index}`}>
-            <div className="timeline-head">
-              {item.logoUrl ? (
-                <img className="timeline-logo" src={item.logoUrl} alt="" width={40} height={40} loading="lazy" />
-              ) : null}
-              <div className="timeline-copy">
-                <h3>{item.role || item.company}</h3>
-                {item.role && item.company ? <p className="timeline-org">{item.company}</p> : null}
-              </div>
-              <div className="timeline-meta">
-                {range && <span>{range}</span>}
-                {item.location && <span>{item.location}</span>}
-              </div>
+            <div className="timeline-rail" aria-hidden="true">
+              <span className="timeline-dot" />
             </div>
-            {item.description && <MarkdownContent markdown={item.description} />}
+            <div className="timeline-body">
+              <div className="timeline-head">
+                {item.logoUrl ? (
+                  <img className="timeline-logo" src={item.logoUrl} alt="" width={40} height={40} loading="lazy" />
+                ) : null}
+                <div className="timeline-copy">
+                  <h3>{item.role || item.company}</h3>
+                  {(item.company && item.role) || item.location ? (
+                    <p className="timeline-org">
+                      {item.role && item.company ? <span>{item.company}</span> : null}
+                      {item.role && item.company && item.location ? (
+                        <span className="timeline-sep" aria-hidden="true">
+                          ·
+                        </span>
+                      ) : null}
+                      {item.location ? <span className="timeline-loc">{item.location}</span> : null}
+                    </p>
+                  ) : null}
+                  {range ? <p className="timeline-dates">{range}</p> : null}
+                </div>
+              </div>
+              {item.description && <MarkdownContent markdown={item.description} />}
+            </div>
           </article>
         );
       })}
@@ -323,15 +345,20 @@ function EducationList({ items }: { items: Portfolio['education'] }) {
         const range = formatDateRange(item.startDate, item.endDate);
         return (
           <article className="timeline-item" key={`${item.school}-${item.degree}-${index}`}>
-            <div className="timeline-head">
-              <div>
-                <h3>{item.degree || item.school}</h3>
-                {item.degree && item.school ? <p className="timeline-org">{item.school}</p> : null}
-                {item.field && <p className="timeline-field">{item.field}</p>}
-              </div>
-              <div className="timeline-meta">{range && <span>{range}</span>}</div>
+            <div className="timeline-rail" aria-hidden="true">
+              <span className="timeline-dot" />
             </div>
-            {item.description && <MarkdownContent markdown={item.description} />}
+            <div className="timeline-body">
+              <div className="timeline-head">
+                <div className="timeline-copy">
+                  <h3>{item.degree || item.school}</h3>
+                  {item.degree && item.school ? <p className="timeline-org">{item.school}</p> : null}
+                  {item.field ? <p className="timeline-field">{item.field}</p> : null}
+                  {range ? <p className="timeline-dates">{range}</p> : null}
+                </div>
+              </div>
+              {item.description && <MarkdownContent markdown={item.description} />}
+            </div>
           </article>
         );
       })}
@@ -339,7 +366,7 @@ function EducationList({ items }: { items: Portfolio['education'] }) {
   );
 }
 
-function MinimalSiteNav({
+function PortfolioSiteNav({
   brand,
   showAbout,
   showWork,
@@ -506,15 +533,32 @@ export function PortfolioView({ portfolio }: Props) {
   const education = portfolio.education || [];
   const titles = resolveSectionTitles(slug, portfolio.sectionTitles);
   const year = new Date().getFullYear();
+  const [ready, setReady] = useState(false);
 
-  const rootClass = `pf pf-${slug} theme-${theme.mode}`;
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setReady(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  const rootClass = `pf pf-${slug} theme-${theme.mode}${ready ? ' is-ready' : ''}`;
   const style = { ['--accent' as string]: theme.primaryColor || template.defaultColor };
 
   if (slug === 'developer') {
+    const showAbout = Boolean(personal.bio);
+    const showWork = experience.length > 0 || education.length > 0;
+    const showProjects = projects.length > 0;
+
     return (
       <div className={rootClass} style={style}>
+        <PortfolioSiteNav
+          brand={personal.fullName.split(' ')[0] || 'dev'}
+          showAbout={showAbout}
+          showWork={showWork}
+          workHref={experience.length > 0 ? '#experience' : '#education'}
+          showProjects={showProjects}
+        />
         <div className="shell">
-          <aside className="rail">
+          <aside className="rail" id="home">
             <div className="rail-top">
               {personal.avatarUrl ? (
                 <img className="avatar" src={personal.avatarUrl} alt={personal.fullName} width={252} height={252} />
@@ -536,16 +580,18 @@ export function PortfolioView({ portfolio }: Props) {
                 </ul>
               </div>
             )}
-            <Socials
-              socials={socials}
-              email={personal.email}
-              phone={personal.phone}
-              whatsapp={personal.whatsapp}
-            />
+            <div id="contact">
+              <Socials
+                socials={socials}
+                email={personal.email}
+                phone={personal.phone}
+                whatsapp={personal.whatsapp}
+              />
+            </div>
           </aside>
           <main id="main">
             {personal.bio && (
-              <section className="panel">
+              <section className="panel" id="about">
                 <div className="panel-bar">
                   <span />
                   <span />
@@ -562,7 +608,7 @@ export function PortfolioView({ portfolio }: Props) {
               variant="developer"
             />
             {projects.length > 0 && (
-              <section className="projects-section">
+              <section className="projects-section" id="projects">
                 <div className="section-head">
                   <h2>{titles.projects}</h2>
                   <span className="mono">{projects.length} shipped</span>
@@ -977,7 +1023,7 @@ export function PortfolioView({ portfolio }: Props) {
 
   return (
     <div className={rootClass} style={style}>
-      <MinimalSiteNav
+      <PortfolioSiteNav
         brand={personal.fullName.split(' ')[0] || 'Home'}
         showAbout={showAbout}
         showWork={showWork}
