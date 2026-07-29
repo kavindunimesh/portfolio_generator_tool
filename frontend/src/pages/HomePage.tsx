@@ -10,7 +10,7 @@ const steps = [
 const options = [
   {
     title: 'Static ZIP download',
-    desc: 'Clean HTML & CSS ready for Netlify, Vercel, or cPanel.',
+    desc: 'Clean HTML & CSS ready for Netlify, Vercel, or any static host.',
   },
   {
     title: 'Instant hosting',

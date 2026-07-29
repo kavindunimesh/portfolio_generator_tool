@@ -2,6 +2,9 @@
   "name": "portfolio-generator-api",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
@@ -22,7 +25,7 @@
     "multer": "^2.2.0",
     "mysql2": "^3.12.0",
     "pdfkit": "^0.19.1",
-    "sharp": "^0.35.3",
+    "sharp": "0.33.5",
     "uuid": "^11.0.5",
     "zod": "^3.24.1"
   },

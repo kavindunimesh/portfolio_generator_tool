@@ -1,4 +1,3 @@
-import sharp from 'sharp';
 import { v4 as uuidv4 } from 'uuid';
 import { query } from '../db';
 import { deleteFromR2, uploadToR2 } from './r2';
@@ -9,6 +8,26 @@ export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
 type UploadPurpose = 'avatar' | 'project' | 'logo' | 'favicon';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SharpFn = any;
+
+let sharpLoader: Promise<SharpFn> | null = null;
+
+async function getSharp(): Promise<SharpFn> {
+  if (!sharpLoader) {
+    sharpLoader = import('sharp')
+      .then((mod: { default?: SharpFn } & SharpFn) => mod.default ?? mod)
+      .catch((err: unknown) => {
+        sharpLoader = null;
+        const detail = err instanceof Error ? err.message : String(err);
+        throw new Error(
+          `Image processing is unavailable on this server (sharp). ${detail}`.slice(0, 500)
+        );
+      });
+  }
+  return sharpLoader;
+}
 
 type UserUploadRow = {
   id: string;
@@ -63,6 +82,8 @@ export async function compressImage(
   buffer: Buffer,
   purpose: UploadPurpose
 ): Promise<{ buffer: Buffer; mimeType: string; extension: string }> {
+  const sharp = await getSharp();
+
   if (purpose === 'favicon') {
     let output = await sharp(buffer, { failOn: 'none' })
       .rotate()

@@ -177,7 +177,7 @@ export function DashboardPage() {
         <section className="dashboard-card">
           <div className="dashboard-card-icon download">↓</div>
           <h3>Download source</h3>
-          <p>Get SEO-friendly static HTML/CSS as a zip. Deploy on your own domain, Netlify, or cPanel.</p>
+          <p>Get SEO-friendly static HTML/CSS as a zip. Deploy on your own domain, Netlify, or any static host.</p>
           <button
             className="btn btn-primary"
             type="button"

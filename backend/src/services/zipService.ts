@@ -278,7 +278,7 @@ npx serve .
 
 ## Deploy
 
-Upload this folder to Netlify, Vercel, GitHub Pages, or any static host / cPanel \`public_html\`.
+Upload this folder to Netlify, Vercel, GitHub Pages, or any static host.
 
 Keep the \`assets\` folder next to \`index.html\` so images load offline / on your host.
 
