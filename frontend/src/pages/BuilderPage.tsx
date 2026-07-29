@@ -1235,38 +1235,50 @@ export function BuilderPage() {
                       {TEMPLATES.map((tpl) => {
                         const selected = form.templateSlug === tpl.slug;
                         return (
-                          <button
+                          <div
                             key={tpl.slug}
-                            type="button"
                             className={`theme-card ${selected ? 'selected' : ''}`}
-                            onClick={() => {
-                              const next = getTemplate(tpl.slug);
-                              setForm({
-                                ...form,
-                                templateSlug: next.slug,
-                                theme: {
-                                  ...form.theme,
-                                  primaryColor: next.defaultColor,
-                                  mode: next.defaultMode,
-                                },
-                              });
-                            }}
                           >
-                            <div
-                              className="theme-card-swatch"
-                              style={{
-                                background: tpl.preview.bg,
-                                color: tpl.preview.text,
+                            <button
+                              type="button"
+                              className="theme-card-select"
+                              onClick={() => {
+                                const next = getTemplate(tpl.slug);
+                                setForm({
+                                  ...form,
+                                  templateSlug: next.slug,
+                                  theme: {
+                                    ...form.theme,
+                                    primaryColor: next.defaultColor,
+                                    mode: next.defaultMode,
+                                  },
+                                });
                               }}
                             >
-                              <span style={{ background: tpl.preview.accent }} />
-                              <strong>Aa</strong>
-                            </div>
-                            <div className="theme-card-meta">
-                              <strong>{tpl.name}</strong>
-                              <span>{tpl.description}</span>
-                            </div>
-                          </button>
+                              <div
+                                className="theme-card-swatch"
+                                style={{
+                                  background: tpl.preview.bg,
+                                  color: tpl.preview.text,
+                                }}
+                              >
+                                <span style={{ background: tpl.preview.accent }} />
+                                <strong>Aa</strong>
+                              </div>
+                              <div className="theme-card-meta">
+                                <strong>{tpl.name}</strong>
+                                <span>{tpl.description}</span>
+                              </div>
+                            </button>
+                            <a
+                              className="theme-card-demo"
+                              href={`/portfolio/${tpl.demoRoute}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              View demo →
+                            </a>
+                          </div>
                         );
                       })}
                     </div>

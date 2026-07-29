@@ -6,6 +6,7 @@ export type TemplateMeta = {
   description: string;
   defaultColor: string;
   defaultMode: 'light' | 'dark';
+  demoRoute: string;
   preview: { bg: string; accent: string; text: string };
 };
 
@@ -16,6 +17,7 @@ export const TEMPLATES: TemplateMeta[] = [
     description: 'Bold creative portfolio with oversized hero type and open layout.',
     defaultColor: '#0F766E',
     defaultMode: 'light',
+    demoRoute: 'demo-minimal',
     preview: { bg: '#f6f4f1', accent: '#0F766E', text: '#171513' },
   },
   {
@@ -24,6 +26,7 @@ export const TEMPLATES: TemplateMeta[] = [
     description: 'Tech-forward layout with split hero and project grid.',
     defaultColor: '#22d3ee',
     defaultMode: 'dark',
+    demoRoute: 'demo-developer',
     preview: { bg: '#0b1220', accent: '#22d3ee', text: '#e2e8f0' },
   },
   {
@@ -32,6 +35,7 @@ export const TEMPLATES: TemplateMeta[] = [
     description: 'Atmospheric gradients and modern creative energy.',
     defaultColor: '#14b8a6',
     defaultMode: 'dark',
+    demoRoute: 'demo-aurora',
     preview: { bg: '#07141a', accent: '#14b8a6', text: '#ecfdf5' },
   },
   {
@@ -40,6 +44,7 @@ export const TEMPLATES: TemplateMeta[] = [
     description: 'Magazine feature layout with display type and ruled sections.',
     defaultColor: '#9f1239',
     defaultMode: 'light',
+    demoRoute: 'demo-editorial',
     preview: { bg: '#f2f0eb', accent: '#9f1239', text: '#141210' },
   },
   {
@@ -48,6 +53,7 @@ export const TEMPLATES: TemplateMeta[] = [
     description: 'Cinematic title-card hero with poster portrait and film contrast.',
     defaultColor: '#f59e0b',
     defaultMode: 'dark',
+    demoRoute: 'demo-noir',
     preview: { bg: '#09090b', accent: '#f59e0b', text: '#fafafa' },
   },
 ];

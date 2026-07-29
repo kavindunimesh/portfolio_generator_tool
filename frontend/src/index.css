@@ -1237,14 +1237,13 @@ code {
 
 .theme-card {
   display: grid;
-  gap: 0.65rem;
+  gap: 0.55rem;
   text-align: left;
   padding: 0.65rem;
   border-radius: 0.9rem;
   border: 1px solid var(--border);
   background: #f8faf9;
   color: inherit;
-  cursor: pointer;
   transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 
@@ -1256,6 +1255,18 @@ code {
 .theme-card.selected {
   border-color: var(--accent);
   box-shadow: 0 0 0 1px rgba(15, 118, 110, 0.2);
+}
+
+.theme-card-select {
+  display: grid;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .theme-card-swatch {
@@ -1290,6 +1301,22 @@ code {
   font-size: 0.78rem;
   color: var(--text-muted);
   line-height: 1.35;
+}
+
+.theme-card-demo {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-top: 0.1rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.theme-card-demo:hover {
+  text-decoration: underline;
 }
 
 .builder-error {

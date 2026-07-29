@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "seed:demos": "node scripts/seed-theme-demos.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1096.0",
