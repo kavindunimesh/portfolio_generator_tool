@@ -58,7 +58,7 @@ export function HomePage() {
               <span />
               <span />
               <span />
-              <em>yoursite.com/portfolio/alex</em>
+              <em>adawwa.com/portfolio/alex</em>
             </div>
             <div className="home-mock-body">
               <div className="home-mock-top">
