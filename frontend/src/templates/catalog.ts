@@ -45,7 +45,7 @@ export const TEMPLATES: TemplateMeta[] = [
   {
     slug: 'noir',
     name: 'Noir',
-    description: 'Cinematic dark theme with sharp contrast and motion.',
+    description: 'Cinematic title-card hero with poster portrait and film contrast.',
     defaultColor: '#f59e0b',
     defaultMode: 'dark',
     preview: { bg: '#09090b', accent: '#f59e0b', text: '#fafafa' },

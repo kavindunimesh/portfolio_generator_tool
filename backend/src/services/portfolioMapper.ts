@@ -195,9 +195,15 @@ export function toTemplateContext(row: PortfolioRow) {
   const ogDescription = data.seo.ogDescription.trim() || metaDescription;
   const ogImageUrl = data.seo.ogImageUrl.trim() || data.personal.avatarUrl || '';
   const faviconUrl = data.seo.faviconUrl.trim() || '';
+  const fullName = data.personal.fullName || 'Your Name';
+  const nameParts = fullName.trim().split(/\s+/).filter(Boolean);
+  const givenName = nameParts[0] || 'Your';
+  const familyName = nameParts.slice(1).join(' ');
   return {
-    fullName: data.personal.fullName || 'Your Name',
-    nameInitial: (data.personal.fullName || 'Y').charAt(0).toUpperCase(),
+    fullName,
+    givenName,
+    familyName,
+    nameInitial: (fullName || 'Y').charAt(0).toUpperCase(),
     shortName:
       (data.personal.fullName || 'user')
         .split(/\s+/)[0]

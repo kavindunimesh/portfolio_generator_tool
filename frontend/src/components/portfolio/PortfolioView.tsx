@@ -901,23 +901,90 @@ export function PortfolioView({ portfolio }: Props) {
   }
 
   if (slug === 'noir') {
+    const showAbout = Boolean(personal.bio);
+    const showWork = experience.length > 0 || education.length > 0;
+    const showProjects = projects.length > 0;
+    const nameParts = personal.fullName.trim().split(/\s+/).filter(Boolean);
+    const givenName = nameParts[0] || personal.fullName || 'Noir';
+    const familyName = nameParts.slice(1).join(' ');
+    const workCtaHref = showProjects
+      ? '#projects'
+      : experience.length > 0
+        ? '#experience'
+        : education.length > 0
+          ? '#education'
+          : personal.bio
+            ? '#about'
+            : null;
+    const workCtaLabel = showProjects ? 'Watch reel' : workCtaHref === '#about' ? 'Read bio' : 'View work';
+
     return (
       <div className={rootClass} style={style}>
         <div className="film-grain" aria-hidden="true" />
-        <header className="hero">
-          <div className="wrap">
-            <p className="kicker">Portfolio / {year}</p>
-            <div className="hero-row">
-              {personal.avatarUrl && (
-                <img className="avatar" src={personal.avatarUrl} alt={personal.fullName} width={120} height={120} />
-              )}
-              <div>
-                <h1>{personal.fullName}</h1>
-                {personal.headline && <p className="headline">{personal.headline}</p>}
+        <PortfolioSiteNav
+          brand={givenName}
+          showAbout={showAbout}
+          showWork={showWork}
+          workHref={experience.length > 0 ? '#experience' : '#education'}
+          showProjects={showProjects}
+        />
+        <header className={`hero${personal.avatarUrl ? '' : ' hero--solo'}`} id="home">
+          <div className="hero-atmosphere" aria-hidden="true">
+            <span className="hero-beam" />
+            <span className="hero-letterbox hero-letterbox--top" />
+            <span className="hero-letterbox hero-letterbox--bottom" />
+          </div>
+          <div className="hero-stage">
+            <div className="hero-copy">
+              <p className="hero-slate">
+                <span>SC. 01</span>
+                <span aria-hidden="true">·</span>
+                <span>Title card</span>
+                <span aria-hidden="true">·</span>
+                <span>{year}</span>
+              </p>
+              <h1 className="hero-title">
+                <span className="name-given">{givenName}</span>
+                {familyName ? <span className="name-family">{familyName}</span> : null}
+              </h1>
+              {personal.headline ? <p className="headline">{personal.headline}</p> : null}
+              <div className="hero-actions">
+                {workCtaHref ? (
+                  <a className="hero-cta" href={workCtaHref}>
+                    {workCtaLabel}
+                  </a>
+                ) : null}
+                {personal.email ? (
+                  <a className="hero-cta ghost" href={`mailto:${personal.email}`}>
+                    Contact
+                  </a>
+                ) : null}
               </div>
             </div>
-            <div className="hero-meta">
-              {personal.location && <span>{personal.location}</span>}
+            {personal.avatarUrl ? (
+              <figure className="hero-poster">
+                <img
+                  className="hero-poster-img"
+                  src={personal.avatarUrl}
+                  alt={personal.fullName}
+                  width={640}
+                  height={800}
+                />
+                <figcaption className="hero-poster-cap">{givenName}</figcaption>
+              </figure>
+            ) : (
+              <div className="hero-poster hero-poster--empty" aria-hidden="true">
+                <span className="hero-monogram">{personal.fullName.charAt(0) || 'N'}</span>
+              </div>
+            )}
+          </div>
+          <div className="hero-bar" id="contact">
+            <div className="hero-bar-inner">
+              {personal.location ? (
+                <span className="loc-tag">{personal.location}</span>
+              ) : (
+                <span className="loc-tag loc-tag--muted">Now showing</span>
+              )}
               <Socials
                 socials={socials}
                 email={personal.email}
@@ -929,14 +996,24 @@ export function PortfolioView({ portfolio }: Props) {
         </header>
         <main id="main" className="wrap">
           {personal.bio && (
-            <section className="section intro">
-              <h2>{titles.about}</h2>
+            <section className="section intro" id="about">
+              <div className="section-head">
+                <span className="scene" aria-hidden="true">
+                  01
+                </span>
+                <h2>{titles.about}</h2>
+              </div>
               <MarkdownContent className="bio" markdown={personal.bio} />
             </section>
           )}
           {skills.length > 0 && (
             <section className="section">
-              <h2>{titles.skills}</h2>
+              <div className="section-head">
+                <span className="scene" aria-hidden="true">
+                  02
+                </span>
+                <h2>{titles.skills}</h2>
+              </div>
               <ul className="chips">
                 {skills.map((s) => (
                   <li key={s}>{s}</li>
@@ -946,8 +1023,13 @@ export function PortfolioView({ portfolio }: Props) {
           )}
           <CareerSections titles={titles} experience={experience} education={education} />
           {projects.length > 0 && (
-            <section className="section">
-              <h2>{titles.projects}</h2>
+            <section className="section" id="projects">
+              <div className="section-head">
+                <span className="scene" aria-hidden="true">
+                  03
+                </span>
+                <h2>{titles.projects}</h2>
+              </div>
               <ProjectCards projects={projects} linkLabel="Watch cut →" imageWrapClass="shot" />
             </section>
           )}
@@ -956,6 +1038,9 @@ export function PortfolioView({ portfolio }: Props) {
           <p>
             © {year} {personal.fullName} — End credits
           </p>
+          <a className="footer-top" href="#home" aria-label="Back to top">
+            ↑
+          </a>
         </footer>
       </div>
     );
