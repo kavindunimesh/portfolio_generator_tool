@@ -48,6 +48,108 @@ const TABS: { id: TabId; label: string; desc: string }[] = [
   { id: 'design', label: 'Design', desc: 'Route, template & theme' },
 ];
 
+function TabIcon({ id }: { id: TabId }) {
+  const common = {
+    width: 18,
+    height: 18,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.8,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    'aria-hidden': true as const,
+  };
+  switch (id) {
+    case 'profile':
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="8" r="3.5" />
+          <path d="M5 19.5c1.6-3.2 4-4.8 7-4.8s5.4 1.6 7 4.8" />
+        </svg>
+      );
+    case 'experience':
+      return (
+        <svg {...common}>
+          <rect x="3" y="7" width="18" height="13" rx="2" />
+          <path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7" />
+          <path d="M3 12h18" />
+        </svg>
+      );
+    case 'education':
+      return (
+        <svg {...common}>
+          <path d="M3 10 12 5l9 5-9 5-9-5Z" />
+          <path d="M7 12.5v4.2c0 .6 2.2 2.3 5 2.3s5-1.7 5-2.3v-4.2" />
+          <path d="M21 10v6" />
+        </svg>
+      );
+    case 'skills':
+      return (
+        <svg {...common}>
+          <path d="M12 3v4" />
+          <path d="M12 17v4" />
+          <path d="M3 12h4" />
+          <path d="M17 12h4" />
+          <circle cx="12" cy="12" r="3.25" />
+        </svg>
+      );
+    case 'projects':
+      return (
+        <svg {...common}>
+          <rect x="3" y="4" width="18" height="6" rx="1.5" />
+          <rect x="3" y="14" width="8" height="6" rx="1.5" />
+          <rect x="13" y="14" width="8" height="6" rx="1.5" />
+        </svg>
+      );
+    case 'socials':
+      return (
+        <svg {...common}>
+          <circle cx="7.5" cy="9" r="2.5" />
+          <circle cx="16.5" cy="7.5" r="2.5" />
+          <circle cx="15.5" cy="16.5" r="2.5" />
+          <path d="M9.5 10.2 14.2 8.3" />
+          <path d="M9.3 10.8 13.5 15" />
+        </svg>
+      );
+    case 'seo':
+      return (
+        <svg {...common}>
+          <circle cx="11" cy="11" r="6.5" />
+          <path d="M16 16.5 20.5 21" />
+        </svg>
+      );
+    case 'design':
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="3" />
+          <path d="M12 3v2.5M12 18.5V21M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M3 12h2.5M18.5 12H21M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" />
+        </svg>
+      );
+  }
+}
+
+function isTabReady(id: TabId, form: FormState): boolean {
+  switch (id) {
+    case 'profile':
+      return Boolean(form.personal.fullName.trim());
+    case 'experience':
+      return form.experience.some((e) => e.company.trim() || e.role.trim());
+    case 'education':
+      return form.education.some((e) => e.school.trim() || e.degree.trim());
+    case 'skills':
+      return form.skillsText.split(',').some((s) => s.trim());
+    case 'projects':
+      return form.projects.some((p) => p.title.trim());
+    case 'socials':
+      return Object.values(form.socials).some((v) => String(v || '').trim());
+    case 'seo':
+      return Boolean(form.seo.title.trim() || form.seo.description.trim());
+    case 'design':
+      return Boolean(form.userRoute.trim() && form.templateSlug);
+  }
+}
+
 const emptyEducation = (): EducationItem => ({
   clientId: createId(),
   school: '',
@@ -357,24 +459,53 @@ export function BuilderPage() {
       </header>
 
       <div className="builder-shell">
-        <nav className="builder-tabs" aria-label="Builder sections">
-          {TABS.map((tab, i) => (
-            <button
-              key={tab.id}
-              type="button"
-              className={`builder-tab ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-              aria-selected={activeTab === tab.id}
-              role="tab"
-            >
-              <span className="builder-tab-num">{i + 1}</span>
-              <span className="builder-tab-text">
-                <strong>{tab.label}</strong>
-                <small>{tab.desc}</small>
-              </span>
-            </button>
-          ))}
-        </nav>
+        <aside className="builder-tabs-panel">
+          <div className="builder-tabs-head">
+            <div>
+              <p className="builder-tabs-label">Sections</p>
+              <p className="builder-tabs-progress">
+                {TABS.filter((t) => isTabReady(t.id, form)).length} of {TABS.length} ready
+              </p>
+            </div>
+            <span className="builder-tabs-step">
+              {TABS.findIndex((t) => t.id === activeTab) + 1}/{TABS.length}
+            </span>
+          </div>
+          <div className="builder-tabs-meter" aria-hidden>
+            <span
+              style={{
+                width: `${(TABS.filter((t) => isTabReady(t.id, form)).length / TABS.length) * 100}%`,
+              }}
+            />
+          </div>
+          <nav className="builder-tabs" aria-label="Builder sections" role="tablist">
+            {TABS.map((tab) => {
+              const ready = isTabReady(tab.id, form);
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  className={`builder-tab${active ? ' active' : ''}${ready ? ' is-ready' : ''}`}
+                  onClick={() => setActiveTab(tab.id)}
+                  aria-selected={active}
+                  role="tab"
+                >
+                  <span className="builder-tab-icon">
+                    <TabIcon id={tab.id} />
+                  </span>
+                  <span className="builder-tab-text">
+                    <strong>{tab.label}</strong>
+                    <small>{tab.desc}</small>
+                  </span>
+                  <span className={`builder-tab-status${ready ? ' on' : ''}`} aria-hidden>
+                    {ready ? '✓' : ''}
+                  </span>
+                </button>
+              );
+            })}
+          </nav>
+        </aside>
 
         <div className="builder-form">
           <div className="builder-panel" role="tabpanel">
