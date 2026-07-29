@@ -1,5 +1,6 @@
 import { markdownToHtml, stripMarkdown } from '../utils/markdown';
 import { resolveSectionTitles } from '../templates/catalog';
+import { env } from '../config';
 
 export type PortfolioRow = {
   id: string;
@@ -34,6 +35,20 @@ type EducationItem = {
   endDate?: string;
   description?: string;
 };
+
+/** Build contact form POST URL for self-hosted PHP admin. */
+export function selfHostedContactSubmitUrl(adminDomain?: string | null): string {
+  const raw = (adminDomain || '').trim().replace(/\/+$/, '');
+  // ZIP co-located admin folder (no domain configured)
+  if (!raw) return './contact-admin/api/submit.php';
+
+  let base = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  base = base.replace(/\/+$/, '');
+
+  if (/\/api\/submit\.php$/i.test(base)) return base;
+  if (/\/api$/i.test(base)) return `${base}/submit.php`;
+  return `${base}/api/submit.php`;
+}
 
 type ExperienceItem = {
   company?: string;
@@ -93,9 +108,18 @@ export function serializePortfolio(row: PortfolioRow) {
     };
     education?: EducationItem[];
     experience?: ExperienceItem[];
+    plugins?: {
+      contactForm?: {
+        enabled?: boolean;
+        mode?: 'adawwa' | 'self_hosted';
+        adminUsername?: string;
+        adminDomain?: string;
+      };
+    };
   }>(row.payload_json, {});
   const phone = row.phone || payload.personal?.phone || '';
   const whatsapp = row.whatsapp || payload.personal?.whatsapp || '';
+  const contactForm = payload.plugins?.contactForm || {};
   return {
     id: row.id,
     userId: row.user_id,
@@ -167,6 +191,14 @@ export function serializePortfolio(row: PortfolioRow) {
     theme: {
       primaryColor: row.primary_color || '#0F766E',
       mode: (row.theme_mode as 'light' | 'dark') || 'light',
+    },
+    plugins: {
+      contactForm: {
+        enabled: Boolean(contactForm.enabled),
+        mode: contactForm.mode === 'self_hosted' ? ('self_hosted' as const) : ('adawwa' as const),
+        adminUsername: contactForm.adminUsername || 'admin',
+        adminDomain: (contactForm.adminDomain || '').trim(),
+      },
     },
     isPublished,
     publishedAt: row.published_at,
@@ -256,5 +288,15 @@ export function toTemplateContext(row: PortfolioRow) {
     sectionTitles,
     templateSlug: data.templateSlug,
     year: new Date().getFullYear(),
+    contactFormEnabled: data.plugins.contactForm.enabled,
+    contactFormMode: data.plugins.contactForm.mode,
+    contactFormSelfHosted: data.plugins.contactForm.enabled && data.plugins.contactForm.mode === 'self_hosted',
+    contactFormAdawwa: data.plugins.contactForm.enabled && data.plugins.contactForm.mode === 'adawwa',
+    contactSubmitUrl:
+      data.plugins.contactForm.enabled && data.plugins.contactForm.mode === 'adawwa' && data.userRoute
+        ? `${env.publicApiUrl.replace(/\/$/, '')}/api/public/portfolios/${encodeURIComponent(data.userRoute)}/contact`
+        : data.plugins.contactForm.enabled && data.plugins.contactForm.mode === 'self_hosted'
+          ? selfHostedContactSubmitUrl(data.plugins.contactForm.adminDomain)
+          : '',
   };
 }

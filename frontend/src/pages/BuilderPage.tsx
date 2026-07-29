@@ -33,9 +33,19 @@ type FormState = {
   sectionTitles: Portfolio['sectionTitles'];
   seo: Portfolio['seo'];
   theme: Portfolio['theme'];
+  plugins: Portfolio['plugins'];
 };
 
-type TabId = 'profile' | 'experience' | 'education' | 'skills' | 'projects' | 'socials' | 'seo' | 'design';
+type TabId =
+  | 'profile'
+  | 'experience'
+  | 'education'
+  | 'skills'
+  | 'projects'
+  | 'socials'
+  | 'seo'
+  | 'design'
+  | 'plugins';
 
 const TABS: { id: TabId; label: string; desc: string }[] = [
   { id: 'profile', label: 'Profile', desc: 'Name, bio & contact' },
@@ -46,6 +56,7 @@ const TABS: { id: TabId; label: string; desc: string }[] = [
   { id: 'socials', label: 'Socials', desc: 'Online links' },
   { id: 'seo', label: 'SEO', desc: 'Meta & sharing' },
   { id: 'design', label: 'Design', desc: 'Route, template & theme' },
+  { id: 'plugins', label: 'Plugins', desc: 'Contact form & extras' },
 ];
 
 function TabIcon({ id }: { id: TabId }) {
@@ -126,6 +137,14 @@ function TabIcon({ id }: { id: TabId }) {
           <path d="M12 3v2.5M12 18.5V21M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M3 12h2.5M18.5 12H21M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" />
         </svg>
       );
+    case 'plugins':
+      return (
+        <svg {...common}>
+          <path d="M12 3v3" />
+          <rect x="5" y="8" width="14" height="11" rx="2.5" />
+          <path d="M9 13h6M9 16h4" />
+        </svg>
+      );
   }
 }
 
@@ -147,6 +166,8 @@ function isTabReady(id: TabId, form: FormState): boolean {
       return Boolean(form.seo.title.trim() || form.seo.description.trim());
     case 'design':
       return Boolean(form.userRoute.trim() && form.templateSlug);
+    case 'plugins':
+      return form.plugins.contactForm.enabled;
   }
 }
 
@@ -212,6 +233,9 @@ const emptyForm: FormState = {
     robots: 'index,follow',
   },
   theme: { primaryColor: '#0F766E', mode: 'light' },
+  plugins: {
+    contactForm: { enabled: false, mode: 'adawwa', adminUsername: 'admin', adminDomain: '' },
+  },
 };
 
 function fromPortfolio(p: Portfolio): FormState {
@@ -270,6 +294,12 @@ function fromPortfolio(p: Portfolio): FormState {
     sectionTitles: { ...emptyForm.sectionTitles, ...p.sectionTitles },
     seo: { ...emptyForm.seo, ...p.seo },
     theme: { ...p.theme },
+    plugins: {
+      contactForm: {
+        ...emptyForm.plugins.contactForm,
+        ...(p.plugins?.contactForm || {}),
+      },
+    },
   };
 }
 
@@ -421,6 +451,7 @@ export function BuilderPage() {
         sectionTitles: form.sectionTitles,
         seo: form.seo,
         theme: form.theme,
+        plugins: form.plugins,
       });
       await refresh();
       toast.success(`${label} saved`, 'Your changes are stored and ready to publish.');
@@ -1468,7 +1499,147 @@ export function BuilderPage() {
                     </span>
                   </div>
                 </div>
+
                 <TabSaveBar label="Design" />
+              </section>
+            )}
+
+            {activeTab === 'plugins' && (
+              <section className="builder-section">
+                <h2>Plugins</h2>
+                <p className="section-desc">Optional extras for your portfolio. All off by default.</p>
+
+                <div className="plugin-card">
+                  <div className="field-label">Contact form</div>
+                  <p className="section-desc" style={{ marginTop: 0 }}>
+                    Let visitors send you a message from your portfolio.
+                  </p>
+                  <label className="checkbox-row">
+                    <input
+                      type="checkbox"
+                      checked={form.plugins.contactForm.enabled}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          plugins: {
+                            ...form.plugins,
+                            contactForm: {
+                              ...form.plugins.contactForm,
+                              enabled: e.target.checked,
+                            },
+                          },
+                        })
+                      }
+                    />
+                    Allow contact form
+                  </label>
+                  {form.plugins.contactForm.enabled && (
+                    <div className="plugin-options">
+                      <fieldset className="radio-stack">
+                        <legend>Where should messages go?</legend>
+                        <label className="checkbox-row">
+                          <input
+                            type="radio"
+                            name="contact-mode"
+                            checked={form.plugins.contactForm.mode === 'adawwa'}
+                            onChange={() =>
+                              setForm({
+                                ...form,
+                                plugins: {
+                                  ...form.plugins,
+                                  contactForm: { ...form.plugins.contactForm, mode: 'adawwa' },
+                                },
+                              })
+                            }
+                          />
+                          <span>
+                            <strong>Adawwa inbox</strong>
+                            <small>Messages appear in your Inbox. Works on the live Adawwa page.</small>
+                          </span>
+                        </label>
+                        <label className="checkbox-row">
+                          <input
+                            type="radio"
+                            name="contact-mode"
+                            checked={form.plugins.contactForm.mode === 'self_hosted'}
+                            onChange={() =>
+                              setForm({
+                                ...form,
+                                plugins: {
+                                  ...form.plugins,
+                                  contactForm: {
+                                    ...form.plugins.contactForm,
+                                    mode: 'self_hosted',
+                                  },
+                                },
+                              })
+                            }
+                          />
+                          <span>
+                            <strong>Self-hosted admin</strong>
+                            <small>
+                              Includes a PHP + MySQL admin panel in your ZIP download. Host it yourself.
+                            </small>
+                          </span>
+                        </label>
+                      </fieldset>
+                      {form.plugins.contactForm.mode === 'self_hosted' && (
+                        <>
+                          <label>
+                            Admin username (used by install.php)
+                            <input
+                              value={form.plugins.contactForm.adminUsername}
+                              onChange={(e) =>
+                                setForm({
+                                  ...form,
+                                  plugins: {
+                                    ...form.plugins,
+                                    contactForm: {
+                                      ...form.plugins.contactForm,
+                                      adminUsername: e.target.value.replace(/[^a-zA-Z0-9_]/g, ''),
+                                    },
+                                  },
+                                })
+                              }
+                              placeholder="admin"
+                              maxLength={32}
+                            />
+                          </label>
+                          <label>
+                            Admin domain / URL
+                            <input
+                              value={form.plugins.contactForm.adminDomain}
+                              onChange={(e) =>
+                                setForm({
+                                  ...form,
+                                  plugins: {
+                                    ...form.plugins,
+                                    contactForm: {
+                                      ...form.plugins.contactForm,
+                                      adminDomain: e.target.value.trimStart(),
+                                    },
+                                  },
+                                })
+                              }
+                              placeholder="https://yourdomain.com"
+                              maxLength={255}
+                              inputMode="url"
+                              autoComplete="url"
+                            />
+                            <small className="muted">
+                              Base URL where the PHP admin is hosted (no <code>/contact-admin</code> added).
+                              Example: <code>https://yourdomain.com</code> → form posts to{' '}
+                              <code>https://yourdomain.com/api/submit.php</code>. Leave blank to use{' '}
+                              <code>./contact-admin/api/submit.php</code> in the ZIP.
+                            </small>
+                          </label>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <TabSaveBar label="Plugins" />
                 <p className="muted tab-dashboard-link">
                   All set?{' '}
                   <button type="button" className="btn-text" onClick={() => navigate('/dashboard')}>

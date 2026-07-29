@@ -1,3 +1,5 @@
+import { ContactSubmitError } from './lib/contactErrors';
+
 export type Portfolio = {
   id: string;
   userId: string;
@@ -72,6 +74,14 @@ export type Portfolio = {
   theme: {
     primaryColor: string;
     mode: 'light' | 'dark';
+  };
+  plugins: {
+    contactForm: {
+      enabled: boolean;
+      mode: 'adawwa' | 'self_hosted';
+      adminUsername: string;
+      adminDomain: string;
+    };
   };
   isPublished: boolean;
   publishedAt: string | null;
@@ -190,4 +200,86 @@ export const api = {
     };
   },
   downloadFileUrl: (id: string) => `${API_URL}/api/downloads/${id}/file`,
+  submitContact: async (
+    userRoute: string,
+    body: {
+      name: string;
+      email: string;
+      subject?: string;
+      message: string;
+      honeypot?: string;
+      website?: string;
+      formStartedAt?: number;
+    }
+  ) => {
+    const res = await fetch(
+      `${API_URL}/api/public/portfolios/${encodeURIComponent(userRoute)}/contact`,
+      {
+        method: 'POST',
+        headers: { ...authHeaders(), Accept: 'application/json' },
+        body: JSON.stringify(body),
+      }
+    );
+    const data = (await res.json().catch(() => ({}))) as {
+      ok?: boolean;
+      error?: string;
+      fields?: Record<string, string>;
+    };
+    if (!res.ok) {
+      throw new ContactSubmitError(
+        typeof data.error === 'string'
+          ? data.error
+          : 'Could not send your message. Please try again.',
+        data.fields || {}
+      );
+    }
+    return data as { ok: boolean };
+  },
+  listContactMessages: (opts?: {
+    page?: number;
+    pageSize?: number;
+    status?: 'all' | 'unread' | 'read' | 'hidden';
+    q?: string;
+  }) => {
+    const page = opts?.page ?? 1;
+    const pageSize = opts?.pageSize ?? 10;
+    const status = opts?.status ?? 'all';
+    const qs = new URLSearchParams({
+      page: String(page),
+      pageSize: String(pageSize),
+      status,
+    });
+    const q = (opts?.q || '').trim();
+    if (q) qs.set('q', q);
+    return request<{
+      page: number;
+      pageSize: number;
+      total: number;
+      totalPages: number;
+      unreadCount: number;
+      q?: string;
+      messages: Array<{
+        id: string;
+        name: string;
+        email: string;
+        subject: string;
+        message: string;
+        isRead: boolean;
+        isHidden: boolean;
+        createdAt: string;
+      }>;
+    }>(`/api/portfolio/messages?${qs.toString()}`);
+  },
+  markContactMessageRead: (id: string) =>
+    request<{ ok: boolean }>(`/api/portfolio/messages/${encodeURIComponent(id)}/read`, {
+      method: 'PATCH',
+    }),
+  hideContactMessage: (id: string) =>
+    request<{ ok: boolean }>(`/api/portfolio/messages/${encodeURIComponent(id)}/hide`, {
+      method: 'PATCH',
+    }),
+  unhideContactMessage: (id: string) =>
+    request<{ ok: boolean }>(`/api/portfolio/messages/${encodeURIComponent(id)}/unhide`, {
+      method: 'PATCH',
+    }),
 };

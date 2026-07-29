@@ -7,6 +7,7 @@ import { HomePage } from './pages/HomePage';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
 import { DashboardPage } from './pages/DashboardPage';
 import { BuilderPage } from './pages/BuilderPage';
+import { InboxPage } from './pages/InboxPage';
 import { PublicPortfolioPage } from './pages/PublicPortfolioPage';
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
               <Route element={<RequireAuth />}>
                 <Route path="dashboard" element={<DashboardPage />} />
                 <Route path="builder" element={<BuilderPage />} />
+                <Route path="inbox" element={<InboxPage />} />
               </Route>
             </Route>
           </Routes>

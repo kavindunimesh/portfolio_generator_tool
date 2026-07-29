@@ -18,6 +18,8 @@ export const env = {
   templatesPath: path.resolve(process.cwd(), process.env.TEMPLATES_PATH || './templates'),
   zipTtlDays: Number(process.env.ZIP_TTL_DAYS || 7),
   publicAppUrl: process.env.PUBLIC_APP_URL || 'http://localhost:5173',
+  /** Absolute API base used by ZIP contact forms (Adawwa mode). */
+  publicApiUrl: process.env.PUBLIC_API_URL || process.env.PUBLIC_APP_URL || 'http://localhost:4000',
   corsOrigin: process.env.CORS_ORIGIN || '*',
   r2: {
     region: process.env.FILE_BUCKET_PUB_REGION || 'auto',

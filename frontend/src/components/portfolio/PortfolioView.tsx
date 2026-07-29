@@ -2,11 +2,43 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { api, type Portfolio } from '../../api';
 import { getTemplate, resolveSectionTitles } from '../../templates/catalog';
 import { MarkdownContent } from '../MarkdownContent';
+import { ContactForm } from './ContactForm';
 import { socialIconPaths, type SocialIconName } from './socialIcons';
+import { selfHostedContactSubmitUrl } from '../../lib/selfHostedContact';
 
 type Props = {
   portfolio: Portfolio;
 };
+
+function ContactSection({ portfolio }: { portfolio: Portfolio }) {
+  const contact = portfolio.plugins?.contactForm;
+  if (!contact?.enabled) return null;
+
+  const isAdawwa = contact.mode !== 'self_hosted';
+  if (isAdawwa && !portfolio.userRoute) return null;
+
+  const selfHostedEndpoint = selfHostedContactSubmitUrl(contact.adminDomain);
+  const selfHostedReady = Boolean(contact.adminDomain?.trim()) && /^https?:\/\//i.test(selfHostedEndpoint);
+
+  return (
+    <section className="wrap pf-contact-section" id="message" aria-labelledby="pf-contact-heading">
+      <div className="pf-contact-section-inner">
+        <p className="pf-contact-kicker">Contact</p>
+        <h2 id="pf-contact-heading">Get in touch</h2>
+        <p className="pf-contact-lead">Have a question or opportunity? Send a message below.</p>
+        {isAdawwa ? (
+          <ContactForm mode="adawwa" userRoute={portfolio.userRoute} />
+        ) : selfHostedReady ? (
+          <ContactForm mode="self_hosted" submitUrl={selfHostedEndpoint} />
+        ) : (
+          <p className="pf-contact-error" role="status">
+            Self-hosted contact form needs an admin domain. Set it in Builder → Plugins, then save.
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
 
 function CvDownloadLink({
   href,
@@ -658,6 +690,7 @@ export function PortfolioView({ portfolio }: Props) {
                 </div>
               </section>
             )}
+            <ContactSection portfolio={portfolio} />
             <footer className="footer">
               <p>
                 © {year} {personal.fullName}
@@ -807,6 +840,7 @@ export function PortfolioView({ portfolio }: Props) {
             </section>
           )}
         </main>
+        <ContactSection portfolio={portfolio} />
         <footer className="wrap footer">
           <div className="footer-inner">
             <div>
@@ -912,6 +946,7 @@ export function PortfolioView({ portfolio }: Props) {
             </section>
           )}
         </main>
+        <ContactSection portfolio={portfolio} />
         <footer className="wrap footer">
           <p>
             © {year} {personal.fullName}
@@ -1057,6 +1092,7 @@ export function PortfolioView({ portfolio }: Props) {
             </section>
           )}
         </main>
+        <ContactSection portfolio={portfolio} />
         <footer className="wrap footer">
           <p>
             © {year} {personal.fullName} — End credits
@@ -1183,6 +1219,8 @@ export function PortfolioView({ portfolio }: Props) {
               whatsapp={personal.whatsapp}
             />
           </section>
+
+          <ContactSection portfolio={portfolio} />
         </main>
 
         <footer className="footer">

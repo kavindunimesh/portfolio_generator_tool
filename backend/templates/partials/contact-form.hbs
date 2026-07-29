@@ -1,0 +1,134 @@
+{{#if contactFormEnabled}}
+<section class="pf-contact-section" id="message" aria-labelledby="pf-contact-heading">
+  <div class="pf-contact-section-inner">
+    <p class="pf-contact-kicker">Contact</p>
+    <h2 id="pf-contact-heading">Get in touch</h2>
+    <p class="pf-contact-lead">Have a question or opportunity? Send a message below.</p>
+    <form class="pf-contact-form" id="adawwa-contact-form" action="{{contactSubmitUrl}}" method="post" novalidate>
+      <div class="pf-contact-grid">
+        <label>
+          Name
+          <input name="name" required maxlength="120" autocomplete="name" />
+          <span class="pf-contact-field-error" data-field="name" hidden></span>
+        </label>
+        <label>
+          Email
+          <input type="email" name="email" required maxlength="255" autocomplete="email" />
+          <span class="pf-contact-field-error" data-field="email" hidden></span>
+        </label>
+      </div>
+      <label>
+        Subject <span class="pf-contact-optional">(optional)</span>
+        <input name="subject" maxlength="200" />
+        <span class="pf-contact-field-error" data-field="subject" hidden></span>
+      </label>
+      <label>
+        Message
+        <textarea name="message" required maxlength="4000" rows="5" placeholder="Write at least 10 characters…"></textarea>
+        <span class="pf-contact-hint">Minimum 10 characters</span>
+        <span class="pf-contact-field-error" data-field="message" hidden></span>
+      </label>
+      <div class="pf-contact-hp" aria-hidden="true">
+        <label>
+          Leave blank
+          <input name="honeypot" tabindex="-1" autocomplete="off" />
+        </label>
+      </div>
+      <p class="pf-contact-error" id="adawwa-contact-error" hidden></p>
+      <p class="pf-contact-ok" id="adawwa-contact-ok" hidden>Thanks — your message was sent.</p>
+      <button type="submit">Send message</button>
+    </form>
+  </div>
+</section>
+<script>
+(function () {
+  var form = document.getElementById('adawwa-contact-form');
+  if (!form) return;
+  var formStartedAt = Date.now();
+  var err = document.getElementById('adawwa-contact-error');
+  var ok = document.getElementById('adawwa-contact-ok');
+
+  function clearErrors() {
+    form.querySelectorAll('.pf-contact-field-error').forEach(function (el) {
+      el.hidden = true;
+      el.textContent = '';
+    });
+    form.querySelectorAll('label.has-error').forEach(function (el) {
+      el.classList.remove('has-error');
+    });
+    if (err) { err.hidden = true; err.textContent = ''; }
+  }
+
+  function showFieldError(field, message) {
+    var el = form.querySelector('.pf-contact-field-error[data-field="' + field + '"]');
+    if (!el) return;
+    el.hidden = false;
+    el.textContent = message;
+    if (el.parentElement) el.parentElement.classList.add('has-error');
+  }
+
+  function validate(data) {
+    var fields = {};
+    if (!data.name.trim()) fields.name = 'Please enter your name.';
+    if (!data.email.trim()) fields.email = 'Please enter your email.';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) {
+      fields.email = 'Enter a valid email address (e.g. you@example.com).';
+    }
+    if (!data.message.trim()) fields.message = 'Please write a message.';
+    else if (data.message.trim().length < 10) {
+      fields.message = 'Message must be at least 10 characters.';
+    }
+    return fields;
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    clearErrors();
+    if (ok) ok.hidden = true;
+    var data = {
+      name: form.name.value,
+      email: form.email.value,
+      subject: form.subject.value,
+      message: form.message.value,
+      honeypot: form.honeypot ? form.honeypot.value : '',
+      formStartedAt: formStartedAt
+    };
+    var fields = validate(data);
+    var keys = Object.keys(fields);
+    if (keys.length) {
+      keys.forEach(function (k) { showFieldError(k, fields[k]); });
+      if (err) {
+        err.hidden = false;
+        err.textContent = 'Please fix the highlighted fields and try again.';
+      }
+      return;
+    }
+    var btn = form.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+    fetch(form.action, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(data)
+    }).then(function (res) {
+      return res.json().then(function (body) {
+        if (!res.ok) {
+          if (body.fields) {
+            Object.keys(body.fields).forEach(function (k) {
+              showFieldError(k, body.fields[k]);
+            });
+          }
+          throw new Error(body.error || 'Could not send your message. Please try again.');
+        }
+        form.reset();
+        formStartedAt = Date.now();
+        if (ok) ok.hidden = false;
+      });
+    }).catch(function (ex) {
+      if (err) { err.hidden = false; err.textContent = ex.message || 'Could not send your message. Please try again.'; }
+    }).finally(function () {
+      if (btn) { btn.disabled = false; btn.textContent = 'Send message'; }
+    });
+  });
+})();
+</script>
+{{/if}}

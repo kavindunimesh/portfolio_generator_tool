@@ -1,0 +1,94 @@
+/* Contact form (Adawwa plugin) */
+.pf-contact-section {
+  width: 100%;
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 3rem;
+  box-sizing: border-box;
+}
+.pf-contact-section-inner { display: grid; gap: 0.55rem; }
+.pf-contact-kicker {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent, #0f766e);
+}
+.pf-contact-section h2 {
+  margin: 0;
+  font-size: clamp(1.35rem, 3vw, 1.85rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.pf-contact-lead {
+  margin: 0 0 0.75rem;
+  opacity: 0.75;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.pf-contact-form {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 0.35rem;
+  padding: 1.25rem;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  background: color-mix(in srgb, currentColor 4%, transparent);
+  text-align: left;
+  position: relative;
+}
+.pf-contact-grid { display: grid; gap: 0.85rem; grid-template-columns: 1fr; }
+@media (min-width: 560px) {
+  .pf-contact-grid { grid-template-columns: 1fr 1fr; }
+}
+.pf-contact-form label { display: grid; gap: 0.35rem; font-size: 0.82rem; font-weight: 600; }
+.pf-contact-optional { font-weight: 500; opacity: 0.65; }
+.pf-contact-form input,
+.pf-contact-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 0.65rem;
+  padding: 0.7rem 0.85rem;
+  font: inherit;
+  color: inherit;
+  background: #fff;
+}
+.pf-contact-form label.has-error input,
+.pf-contact-form label.has-error textarea {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+}
+.pf-contact-field-error { color: #dc2626; font-size: 0.78rem; font-weight: 600; }
+.pf-contact-hint { font-size: 0.75rem; font-weight: 500; opacity: 0.6; }
+.pf-contact-form button[type="submit"] {
+  justify-self: start;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.75rem 1.35rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--accent, #0f766e);
+  color: #fff;
+}
+.pf-contact-form button:disabled { opacity: 0.6; cursor: not-allowed; }
+.pf-contact-error {
+  margin: 0;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.65rem;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  color: #dc2626;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.pf-contact-ok { margin: 0; font-weight: 600; color: var(--accent, #0f766e); }
+.pf-contact-hp {
+  position: absolute !important;
+  left: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+}

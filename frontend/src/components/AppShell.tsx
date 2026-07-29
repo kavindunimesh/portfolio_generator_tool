@@ -43,6 +43,9 @@ export function AppShell() {
         <NavLink to="/builder" className={navClass} onClick={() => setMenuOpen(false)}>
           Builder
         </NavLink>
+        <NavLink to="/inbox" className={navClass} onClick={() => setMenuOpen(false)}>
+          Inbox
+        </NavLink>
       </div>
       <div className="nav-account">
         <span className="user-pill" title={username || undefined}>

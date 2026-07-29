@@ -108,6 +108,44 @@ export const portfolioUpdateSchema = z.object({
       mode: z.enum(['light', 'dark']).default('light'),
     })
     .default({ primaryColor: '#0F766E', mode: 'light' }),
+  plugins: z
+    .object({
+      contactForm: z
+        .object({
+          enabled: z.boolean().default(false),
+          mode: z.enum(['adawwa', 'self_hosted']).default('adawwa'),
+          adminUsername: z
+            .string()
+            .trim()
+            .min(3)
+            .max(32)
+            .regex(/^[a-zA-Z0-9_]+$/)
+            .default('admin'),
+          /** Origin where contact-admin is hosted, e.g. https://example.com — empty = relative path in ZIP */
+          adminDomain: z
+            .string()
+            .trim()
+            .max(255)
+            .default('')
+            .refine(
+              (v) => {
+                if (!v) return true;
+                try {
+                  const withProto = /^https?:\/\//i.test(v) ? v : `https://${v}`;
+                  const u = new URL(withProto);
+                  return Boolean(u.hostname) && (u.protocol === 'http:' || u.protocol === 'https:');
+                } catch {
+                  return false;
+                }
+              },
+              { message: 'Enter a valid domain or URL (e.g. https://example.com)' }
+            ),
+        })
+        .default({ enabled: false, mode: 'adawwa', adminUsername: 'admin', adminDomain: '' }),
+    })
+    .default({
+      contactForm: { enabled: false, mode: 'adawwa', adminUsername: 'admin', adminDomain: '' },
+    }),
 });
 
 export type PortfolioUpdateInput = z.infer<typeof portfolioUpdateSchema>;

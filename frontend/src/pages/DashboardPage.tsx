@@ -249,6 +249,29 @@ export function DashboardPage() {
           <code>/portfolio/...</code> links are for quick sharing only.
         </p>
       </aside>
+      {portfolio.plugins?.contactForm?.enabled &&
+        portfolio.plugins.contactForm.mode === 'adawwa' && (
+          <aside className="dashboard-tip">
+            <strong>Contact messages</strong>
+            <p>
+              Visitor messages go to your{' '}
+              <Link to="/inbox">contact inbox</Link>.
+            </p>
+          </aside>
+        )}
+      {portfolio.plugins?.contactForm?.enabled &&
+        portfolio.plugins.contactForm.mode === 'self_hosted' && (
+          <aside className="dashboard-tip">
+            <strong>Self-hosted contact form</strong>
+            <p>
+              Download the ZIP for the PHP + MySQL admin. Set your admin domain in Builder → Plugins so
+              the form posts to the right endpoint
+              {portfolio.plugins.contactForm.adminDomain?.trim()
+                ? ` (${portfolio.plugins.contactForm.adminDomain.trim()}).`
+                : ' (relative path if left blank).'}
+            </p>
+          </aside>
+        )}
     </main>
   );
 }

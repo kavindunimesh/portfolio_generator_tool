@@ -8,6 +8,7 @@ import portfolioRoutes from './routes/portfolio';
 import downloadRoutes from './routes/downloads';
 import publicRoutes from './routes/public';
 import uploadRoutes from './routes/uploads';
+import contactRoutes from './routes/contact';
 
 fs.mkdirSync(`${env.storagePath}/zips`, { recursive: true });
 fs.mkdirSync(`${env.storagePath}/tmp`, { recursive: true });
@@ -38,6 +39,7 @@ app.use(
 app.use(express.json({ limit: '1mb' }));
 
 app.use('/api', publicRoutes);
+app.use('/api', contactRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/downloads', downloadRoutes);
