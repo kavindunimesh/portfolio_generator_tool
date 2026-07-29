@@ -1,0 +1,1067 @@
+import { useState } from 'react';
+import type { Portfolio } from '../../api';
+import { getTemplate, resolveSectionTitles, type TemplateSlug } from '../../templates/catalog';
+import { MarkdownContent } from '../MarkdownContent';
+import { socialIconPaths, type SocialIconName } from './socialIcons';
+
+type Props = {
+  portfolio: Portfolio;
+};
+
+function digitsOnly(value: string): string {
+  return value.replace(/\D/g, '');
+}
+
+function SocialIcon({ name }: { name: SocialIconName }) {
+  return (
+    <svg className="social-icon" viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">
+      <path fill="currentColor" d={socialIconPaths[name]} />
+    </svg>
+  );
+}
+
+function Socials({
+  socials,
+  email,
+  phone,
+  whatsapp,
+}: {
+  socials: Portfolio['socials'];
+  email?: string;
+  phone?: string;
+  whatsapp?: string;
+}) {
+  const whatsappDigits = digitsOnly(whatsapp || '');
+  const phoneHref = phone ? `tel:${phone.replace(/[^\d+]/g, '')}` : '';
+  const hasIcons = Boolean(
+    socials.github ||
+      socials.linkedin ||
+      socials.website ||
+      socials.twitter ||
+      socials.facebook ||
+      socials.tiktok ||
+      socials.youtube ||
+      socials.behance ||
+      socials.dribbble ||
+      socials.instagram ||
+      phone
+  );
+  const hasContacts = Boolean(email || (whatsapp && whatsappDigits));
+
+  if (!hasIcons && !hasContacts) return null;
+
+  return (
+    <nav className="socials" aria-label="Social links">
+      {hasIcons && (
+        <div className="social-icons-row">
+          {socials.github && (
+            <a
+              className="social-btn"
+              href={socials.github}
+              rel="noopener noreferrer"
+              title="GitHub"
+              aria-label="GitHub"
+            >
+              <SocialIcon name="github" />
+            </a>
+          )}
+          {socials.linkedin && (
+            <a
+              className="social-btn"
+              href={socials.linkedin}
+              rel="noopener noreferrer"
+              title="LinkedIn"
+              aria-label="LinkedIn"
+            >
+              <SocialIcon name="linkedin" />
+            </a>
+          )}
+          {socials.website && (
+            <a
+              className="social-btn"
+              href={socials.website}
+              rel="noopener noreferrer"
+              title="Website"
+              aria-label="Website"
+            >
+              <SocialIcon name="website" />
+            </a>
+          )}
+          {socials.twitter && (
+            <a
+              className="social-btn"
+              href={socials.twitter}
+              rel="noopener noreferrer"
+              title="Twitter / X"
+              aria-label="Twitter / X"
+            >
+              <SocialIcon name="twitter" />
+            </a>
+          )}
+          {socials.facebook && (
+            <a
+              className="social-btn"
+              href={socials.facebook}
+              rel="noopener noreferrer"
+              title="Facebook"
+              aria-label="Facebook"
+            >
+              <SocialIcon name="facebook" />
+            </a>
+          )}
+          {socials.tiktok && (
+            <a
+              className="social-btn"
+              href={socials.tiktok}
+              rel="noopener noreferrer"
+              title="TikTok"
+              aria-label="TikTok"
+            >
+              <SocialIcon name="tiktok" />
+            </a>
+          )}
+          {socials.youtube && (
+            <a
+              className="social-btn"
+              href={socials.youtube}
+              rel="noopener noreferrer"
+              title="YouTube"
+              aria-label="YouTube"
+            >
+              <SocialIcon name="youtube" />
+            </a>
+          )}
+          {socials.instagram && (
+            <a
+              className="social-btn"
+              href={socials.instagram}
+              rel="noopener noreferrer"
+              title="Instagram"
+              aria-label="Instagram"
+            >
+              <SocialIcon name="instagram" />
+            </a>
+          )}
+          {socials.behance && (
+            <a
+              className="social-btn"
+              href={socials.behance}
+              rel="noopener noreferrer"
+              title="Behance"
+              aria-label="Behance"
+            >
+              <SocialIcon name="behance" />
+            </a>
+          )}
+          {socials.dribbble && (
+            <a
+              className="social-btn"
+              href={socials.dribbble}
+              rel="noopener noreferrer"
+              title="Dribbble"
+              aria-label="Dribbble"
+            >
+              <SocialIcon name="dribbble" />
+            </a>
+          )}
+          {phone && phoneHref && (
+            <a className="social-btn" href={phoneHref} title={phone} aria-label={`Call ${phone}`}>
+              <SocialIcon name="phone" />
+            </a>
+          )}
+        </div>
+      )}
+      {hasContacts && (
+        <div className="social-contact-row">
+          {email && (
+            <a className="mail-link contact-chip" href={`mailto:${email}`} title={email}>
+              <SocialIcon name="email" />
+              <span>{email}</span>
+            </a>
+          )}
+          {whatsapp && whatsappDigits && (
+            <a
+              className="wa-link contact-chip"
+              href={`https://wa.me/${whatsappDigits}`}
+              rel="noopener noreferrer"
+              target="_blank"
+              title={`WhatsApp ${whatsapp}`}
+            >
+              <SocialIcon name="whatsapp" />
+              <span>{whatsapp}</span>
+            </a>
+          )}
+        </div>
+      )}
+    </nav>
+  );
+}
+
+function ProjectCards({
+  projects,
+  linkLabel = 'View project →',
+  showIndex = false,
+  imageWrapClass,
+}: {
+  projects: Portfolio['projects'];
+  linkLabel?: string;
+  showIndex?: boolean;
+  imageWrapClass?: string;
+}) {
+  return (
+    <div className="projects">
+      {projects.map((p, index) => (
+        <article className="card" key={`${p.title}-${index}`}>
+          {showIndex && (
+            <div className="card-index" aria-hidden="true">
+              {String(index + 1).padStart(2, '0')}
+            </div>
+          )}
+          <div className={showIndex ? 'card-main' : undefined}>
+            {p.imageUrl &&
+              (imageWrapClass ? (
+                <div className={imageWrapClass}>
+                  <img className="project-image" src={p.imageUrl} alt={p.title} loading="lazy" />
+                </div>
+              ) : (
+                <img className="project-image" src={p.imageUrl} alt={p.title} loading="lazy" />
+              ))}
+            <div className="card-body">
+              <h3>{p.title}</h3>
+              {p.description && <MarkdownContent markdown={p.description} />}
+              {p.tech?.length > 0 && (
+                <ul className="chips small">
+                  {p.tech.map((t) => (
+                    <li key={t}>{t}</li>
+                  ))}
+                </ul>
+              )}
+              {p.link && (
+                <a className="link" href={p.link} rel="noopener noreferrer" target="_blank">
+                  {linkLabel}
+                </a>
+              )}
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function formatDateRange(start?: string, end?: string) {
+  const s = (start || '').trim();
+  const e = (end || '').trim();
+  if (!s && !e) return '';
+  if (s && e) return `${s} — ${e}`;
+  return s || e;
+}
+
+function ExperienceList({ items }: { items: Portfolio['experience'] }) {
+  if (!items.length) return null;
+  return (
+    <div className="timeline">
+      {items.map((item, index) => {
+        const range = formatDateRange(item.startDate, item.endDate);
+        return (
+          <article className="timeline-item" key={`${item.company}-${item.role}-${index}`}>
+            <div className="timeline-head">
+              {item.logoUrl ? (
+                <img className="timeline-logo" src={item.logoUrl} alt="" width={40} height={40} loading="lazy" />
+              ) : null}
+              <div className="timeline-copy">
+                <h3>{item.role || item.company}</h3>
+                {item.role && item.company ? <p className="timeline-org">{item.company}</p> : null}
+              </div>
+              <div className="timeline-meta">
+                {range && <span>{range}</span>}
+                {item.location && <span>{item.location}</span>}
+              </div>
+            </div>
+            {item.description && <MarkdownContent markdown={item.description} />}
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
+function EducationList({ items }: { items: Portfolio['education'] }) {
+  if (!items.length) return null;
+  return (
+    <div className="timeline">
+      {items.map((item, index) => {
+        const range = formatDateRange(item.startDate, item.endDate);
+        return (
+          <article className="timeline-item" key={`${item.school}-${item.degree}-${index}`}>
+            <div className="timeline-head">
+              <div>
+                <h3>{item.degree || item.school}</h3>
+                {item.degree && item.school ? <p className="timeline-org">{item.school}</p> : null}
+                {item.field && <p className="timeline-field">{item.field}</p>}
+              </div>
+              <div className="timeline-meta">{range && <span>{range}</span>}</div>
+            </div>
+            {item.description && <MarkdownContent markdown={item.description} />}
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
+function MinimalSiteNav({
+  brand,
+  showAbout,
+  showWork,
+  workHref,
+  showProjects,
+}: {
+  brand: string;
+  showAbout: boolean;
+  showWork: boolean;
+  workHref: string;
+  showProjects: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const close = () => setOpen(false);
+
+  return (
+    <nav className={`site-nav${open ? ' is-open' : ''}`} aria-label="Primary">
+      <div className="site-nav-inner">
+        <a className="nav-brand" href="#home" onClick={close}>
+          {brand}
+        </a>
+        <button
+          type="button"
+          className="nav-toggle"
+          aria-expanded={open}
+          aria-controls="site-nav-menu"
+          onClick={() => setOpen((v) => !v)}
+        >
+          <span className="nav-toggle-bars" aria-hidden="true" />
+          <span className="visually-hidden">{open ? 'Close menu' : 'Open menu'}</span>
+        </button>
+        <div className="nav-links" id="site-nav-menu">
+          <a href="#home" onClick={close}>
+            Home
+          </a>
+          {showAbout && (
+            <a href="#about" onClick={close}>
+              About
+            </a>
+          )}
+          {showWork && (
+            <a href={workHref} onClick={close}>
+              Work
+            </a>
+          )}
+          {showProjects && (
+            <a href="#projects" onClick={close}>
+              Projects
+            </a>
+          )}
+          <a href="#contact" onClick={close}>
+            Contact
+          </a>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+function CareerSections({
+  titles,
+  experience,
+  education,
+  variant = 'default',
+}: {
+  titles: ReturnType<typeof resolveSectionTitles>;
+  experience: Portfolio['experience'];
+  education: Portfolio['education'];
+  variant?: 'default' | 'developer' | 'editorial' | 'terminal';
+}) {
+  return (
+    <>
+      {experience.length > 0 && (
+        <section
+          id="experience"
+          className={
+            variant === 'developer'
+              ? 'panel career-panel'
+              : variant === 'terminal'
+                ? 'section cmd-block'
+                : 'section'
+          }
+        >
+          {variant === 'developer' ? (
+            <div className="panel-bar">
+              <span />
+              <span />
+              <span />
+              <code>experience.md</code>
+            </div>
+          ) : variant === 'editorial' ? (
+            <div className="section-rule">
+              <h2>{titles.experience}</h2>
+              <span />
+            </div>
+          ) : variant === 'terminal' ? (
+            <p className="prompt-line">
+              <span className="ps1">$</span> cat ./{titles.experience}.log
+            </p>
+          ) : (
+            <div className="section-title">
+              <h2>{titles.experience}</h2>
+            </div>
+          )}
+          {variant === 'developer' && (
+            <div className="section-head panel-section-head">
+              <h2>{titles.experience}</h2>
+            </div>
+          )}
+          {variant === 'terminal' && <h2 className="cmd-title">{titles.experience}</h2>}
+          <ExperienceList items={experience} />
+        </section>
+      )}
+      {education.length > 0 && (
+        <section
+          id="education"
+          className={
+            variant === 'developer'
+              ? 'panel career-panel'
+              : variant === 'terminal'
+                ? 'section cmd-block'
+                : 'section'
+          }
+        >
+          {variant === 'developer' ? (
+            <div className="panel-bar">
+              <span />
+              <span />
+              <span />
+              <code>education.md</code>
+            </div>
+          ) : variant === 'editorial' ? (
+            <div className="section-rule">
+              <h2>{titles.education}</h2>
+              <span />
+            </div>
+          ) : variant === 'terminal' ? (
+            <p className="prompt-line">
+              <span className="ps1">$</span> cat ./{titles.education}.log
+            </p>
+          ) : (
+            <div className="section-title">
+              <h2>{titles.education}</h2>
+            </div>
+          )}
+          {variant === 'developer' && (
+            <div className="section-head panel-section-head">
+              <h2>{titles.education}</h2>
+            </div>
+          )}
+          {variant === 'terminal' && <h2 className="cmd-title">{titles.education}</h2>}
+          <EducationList items={education} />
+        </section>
+      )}
+    </>
+  );
+}
+
+export function PortfolioView({ portfolio }: Props) {
+  const slug = (portfolio.templateSlug || 'minimal') as TemplateSlug;
+  const template = getTemplate(slug);
+  const { personal, socials, skills, projects, theme } = portfolio;
+  const experience = portfolio.experience || [];
+  const education = portfolio.education || [];
+  const titles = resolveSectionTitles(slug, portfolio.sectionTitles);
+  const year = new Date().getFullYear();
+
+  const rootClass = `pf pf-${slug} theme-${theme.mode}`;
+  const style = { ['--accent' as string]: theme.primaryColor || template.defaultColor };
+
+  if (slug === 'developer') {
+    return (
+      <div className={rootClass} style={style}>
+        <div className="shell">
+          <aside className="rail">
+            <div className="rail-top">
+              {personal.avatarUrl ? (
+                <img className="avatar" src={personal.avatarUrl} alt={personal.fullName} width={252} height={252} />
+              ) : (
+                <div className="avatar avatar-fallback">{personal.fullName.charAt(0) || '?'}</div>
+              )}
+              <p className="mono tag">~/portfolio</p>
+              <h1>{personal.fullName}</h1>
+              {personal.headline && <p className="headline">{personal.headline}</p>}
+              {personal.location && <p className="meta">{personal.location}</p>}
+            </div>
+            {skills.length > 0 && (
+              <div className="rail-skills">
+                <h2>{titles.skills}</h2>
+                <ul className="chips">
+                  {skills.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <Socials
+              socials={socials}
+              email={personal.email}
+              phone={personal.phone}
+              whatsapp={personal.whatsapp}
+            />
+          </aside>
+          <main id="main">
+            {personal.bio && (
+              <section className="panel">
+                <div className="panel-bar">
+                  <span />
+                  <span />
+                  <span />
+                  <code>about.md</code>
+                </div>
+                <MarkdownContent className="bio" markdown={personal.bio} />
+              </section>
+            )}
+            <CareerSections
+              titles={titles}
+              experience={experience}
+              education={education}
+              variant="developer"
+            />
+            {projects.length > 0 && (
+              <section className="projects-section">
+                <div className="section-head">
+                  <h2>{titles.projects}</h2>
+                  <span className="mono">{projects.length} shipped</span>
+                </div>
+                <div className="projects">
+                  {projects.map((p, index) => (
+                    <article className="project-row" key={`${p.title}-${index}`}>
+                      <div className="project-row-bar">
+                        <span />
+                        <span />
+                        <span />
+                        <code>{`projects/0${index}.md`}</code>
+                        {p.link && (
+                          <a className="link" href={p.link} rel="noopener noreferrer" target="_blank">
+                            open ↗
+                          </a>
+                        )}
+                      </div>
+                      <div className={`project-row-body${p.imageUrl ? ' has-media' : ''}`}>
+                        {p.imageUrl && (
+                          <div className="project-media">
+                            <img className="project-image" src={p.imageUrl} alt={p.title} loading="lazy" />
+                          </div>
+                        )}
+                        <div className="project-content">
+                          <div className="project-title-row">
+                            <span className="project-index mono">0{index}</span>
+                            <h3>{p.title}</h3>
+                          </div>
+                          {p.description && <MarkdownContent markdown={p.description} />}
+                          {p.tech?.length > 0 && (
+                            <ul className="chips small">
+                              {p.tech.map((t) => (
+                                <li key={t}>{t}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
+            <footer className="footer">
+              <p>
+                © {year} {personal.fullName}
+              </p>
+            </footer>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  if (slug === 'terminal') {
+    return (
+      <div className={rootClass} style={style}>
+        <div className="term-scan" aria-hidden="true" />
+        <div className="term-shell">
+          <div className="term-chrome">
+            <span className="term-dots" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+            </span>
+            <p className="term-title">portfolio — zsh — {year}</p>
+            <span className="term-path mono">~/dev/{personal.fullName.split(' ')[0]?.toLowerCase() || 'user'}</span>
+          </div>
+          <div className="term-body wrap">
+            <header className="hero">
+              <div className="hero-row">
+                {personal.avatarUrl && (
+                  <img className="avatar" src={personal.avatarUrl} alt={personal.fullName} width={88} height={88} />
+                )}
+                <div className="hero-copy">
+                  <p className="prompt-line">
+                    <span className="ps1">$</span> whoami
+                  </p>
+                  <h1>{personal.fullName}</h1>
+                  {personal.headline && (
+                    <>
+                      <p className="prompt-line muted-cmd">
+                        <span className="ps1">$</span> cat headline.txt
+                      </p>
+                      <p className="headline">{personal.headline}</p>
+                    </>
+                  )}
+                  {personal.location && <p className="meta"># {personal.location}</p>}
+                </div>
+              </div>
+              <Socials
+                socials={socials}
+                email={personal.email}
+                phone={personal.phone}
+                whatsapp={personal.whatsapp}
+              />
+            </header>
+
+            <main id="main">
+              {personal.bio && (
+                <section className="section cmd-block">
+                  <p className="prompt-line">
+                    <span className="ps1">$</span> cat ./{titles.about}.md
+                  </p>
+                  <h2 className="cmd-title">{titles.about}</h2>
+                  <MarkdownContent className="bio" markdown={personal.bio} />
+                </section>
+              )}
+
+              {skills.length > 0 && (
+                <section className="section cmd-block">
+                  <p className="prompt-line">
+                    <span className="ps1">$</span> ls ./{titles.skills}/
+                  </p>
+                  <h2 className="cmd-title">{titles.skills}</h2>
+                  <ul className="chips">
+                    {skills.map((s) => (
+                      <li key={s}>{s}</li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+
+              <CareerSections
+                titles={titles}
+                experience={experience}
+                education={education}
+                variant="terminal"
+              />
+
+              {projects.length > 0 && (
+                <section className="section cmd-block">
+                  <p className="prompt-line">
+                    <span className="ps1">$</span> find ./{titles.projects} -maxdepth 1
+                  </p>
+                  <h2 className="cmd-title">{titles.projects}</h2>
+                  <div className="projects">
+                    {projects.map((p, index) => (
+                      <article className="card" key={`${p.title}-${index}`}>
+                        <div className="card-head">
+                          <span className="mono">drwxr-xr-x</span>
+                          <span className="mono">{String(index + 1).padStart(2, '0')}</span>
+                          <h3>{p.title}</h3>
+                          {p.link && (
+                            <a className="link" href={p.link} rel="noopener noreferrer" target="_blank">
+                              open
+                            </a>
+                          )}
+                        </div>
+                        {p.imageUrl && (
+                          <img className="project-image" src={p.imageUrl} alt={p.title} loading="lazy" />
+                        )}
+                        <div className="card-body">
+                          {p.description && <MarkdownContent markdown={p.description} />}
+                          {p.tech?.length > 0 && (
+                            <ul className="chips small">
+                              {p.tech.map((t) => (
+                                <li key={t}>{t}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </main>
+
+            <footer className="footer">
+              <p className="prompt-line">
+                <span className="ps1">$</span> echo &quot;© {year} {personal.fullName}&quot;
+                <span className="cursor" aria-hidden="true" />
+              </p>
+            </footer>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (slug === 'aurora') {
+    return (
+      <div className={rootClass} style={style}>
+        <div className="aurora-bg" aria-hidden="true">
+          <span className="aurora-orb aurora-orb-a" />
+          <span className="aurora-orb aurora-orb-b" />
+          <span className="aurora-orb aurora-orb-c" />
+          <span className="aurora-veil" />
+        </div>
+        <header className="hero">
+          <div className="wrap hero-grid">
+            <div className="hero-copy">
+              <div className="hero-topline">
+                <p className="badge">
+                  <span className="badge-dot" aria-hidden="true" />
+                  Available for work
+                </p>
+                {personal.location && <p className="loc-inline">{personal.location}</p>}
+              </div>
+              <h1>{personal.fullName}</h1>
+              {personal.headline && <p className="headline">{personal.headline}</p>}
+              <Socials
+                socials={socials}
+                email={personal.email}
+                phone={personal.phone}
+                whatsapp={personal.whatsapp}
+              />
+            </div>
+            <div className="hero-visual">
+              <div className="avatar-frame">
+                {personal.avatarUrl ? (
+                  <img className="avatar" src={personal.avatarUrl} alt={personal.fullName} width={300} height={360} />
+                ) : (
+                  <div className="avatar avatar-empty" />
+                )}
+              </div>
+            </div>
+          </div>
+        </header>
+        <main id="main" className="wrap">
+          {personal.bio && (
+            <section className="section panel">
+              <div className="section-head">
+                <h2>{titles.about}</h2>
+              </div>
+              <MarkdownContent className="bio" markdown={personal.bio} />
+            </section>
+          )}
+          {skills.length > 0 && (
+            <section className="section panel">
+              <div className="section-head">
+                <h2>{titles.skills}</h2>
+              </div>
+              <ul className="chips">
+                {skills.map((s) => (
+                  <li key={s}>{s}</li>
+                ))}
+              </ul>
+            </section>
+          )}
+          <CareerSections titles={titles} experience={experience} education={education} />
+          {projects.length > 0 && (
+            <section className="section">
+              <div className="section-head">
+                <h2>{titles.projects}</h2>
+              </div>
+              <ProjectCards projects={projects} linkLabel="Explore" />
+            </section>
+          )}
+        </main>
+        <footer className="wrap footer">
+          <p>
+            © {year} {personal.fullName}
+          </p>
+        </footer>
+      </div>
+    );
+  }
+
+  if (slug === 'editorial') {
+    return (
+      <div className={rootClass} style={style}>
+        <div className="paper-grain" aria-hidden="true" />
+        <div className="masthead">
+          <div className="wrap mast-row">
+            <p className="mast-brand">Portfolio</p>
+            <div className="mast-meta">
+              <p className="issue">Vol. 01 · {year}</p>
+              {personal.location && <p className="issue">{personal.location}</p>}
+            </div>
+          </div>
+        </div>
+        <header className="hero wrap">
+          <div className="hero-copy">
+            <p className="byline">Featured profile</p>
+            <h1>{personal.fullName}</h1>
+            {personal.headline && <p className="headline">{personal.headline}</p>}
+            <Socials
+              socials={socials}
+              email={personal.email}
+              phone={personal.phone}
+              whatsapp={personal.whatsapp}
+            />
+          </div>
+          <div className="hero-visual">
+            {personal.avatarUrl ? (
+              <figure className="portrait">
+                <img className="avatar" src={personal.avatarUrl} alt={personal.fullName} width={260} height={320} />
+                <figcaption>{personal.fullName}</figcaption>
+              </figure>
+            ) : (
+              <div className="portrait portrait-empty" aria-hidden="true" />
+            )}
+          </div>
+        </header>
+        <main id="main" className="wrap">
+          {personal.bio && (
+            <section className="section about">
+              <div className="section-rule">
+                <h2>{titles.about}</h2>
+                <span />
+              </div>
+              <MarkdownContent className="bio lede" markdown={personal.bio} />
+            </section>
+          )}
+          {skills.length > 0 && (
+            <section className="section skills-row">
+              <div className="section-rule">
+                <h2>{titles.skills}</h2>
+                <span />
+              </div>
+              <ul className="chips">
+                {skills.map((s) => (
+                  <li key={s}>{s}</li>
+                ))}
+              </ul>
+            </section>
+          )}
+          <CareerSections
+            titles={titles}
+            experience={experience}
+            education={education}
+            variant="editorial"
+          />
+          {projects.length > 0 && (
+            <section className="section">
+              <div className="section-rule">
+                <h2>{titles.projects}</h2>
+                <span />
+              </div>
+              <ProjectCards projects={projects} linkLabel="Read more" showIndex />
+            </section>
+          )}
+        </main>
+        <footer className="wrap footer">
+          <p>
+            © {year} {personal.fullName}
+          </p>
+          <p className="footer-end">End of issue</p>
+        </footer>
+      </div>
+    );
+  }
+
+  if (slug === 'noir') {
+    return (
+      <div className={rootClass} style={style}>
+        <div className="film-grain" aria-hidden="true" />
+        <header className="hero">
+          <div className="wrap">
+            <p className="kicker">Portfolio / {year}</p>
+            <div className="hero-row">
+              {personal.avatarUrl && (
+                <img className="avatar" src={personal.avatarUrl} alt={personal.fullName} width={120} height={120} />
+              )}
+              <div>
+                <h1>{personal.fullName}</h1>
+                {personal.headline && <p className="headline">{personal.headline}</p>}
+              </div>
+            </div>
+            <div className="hero-meta">
+              {personal.location && <span>{personal.location}</span>}
+              <Socials
+                socials={socials}
+                email={personal.email}
+                phone={personal.phone}
+                whatsapp={personal.whatsapp}
+              />
+            </div>
+          </div>
+        </header>
+        <main id="main" className="wrap">
+          {personal.bio && (
+            <section className="section intro">
+              <h2>{titles.about}</h2>
+              <MarkdownContent className="bio" markdown={personal.bio} />
+            </section>
+          )}
+          {skills.length > 0 && (
+            <section className="section">
+              <h2>{titles.skills}</h2>
+              <ul className="chips">
+                {skills.map((s) => (
+                  <li key={s}>{s}</li>
+                ))}
+              </ul>
+            </section>
+          )}
+          <CareerSections titles={titles} experience={experience} education={education} />
+          {projects.length > 0 && (
+            <section className="section">
+              <h2>{titles.projects}</h2>
+              <ProjectCards projects={projects} linkLabel="Watch cut →" imageWrapClass="shot" />
+            </section>
+          )}
+        </main>
+        <footer className="wrap footer">
+          <p>
+            © {year} {personal.fullName} — End credits
+          </p>
+        </footer>
+      </div>
+    );
+  }
+
+  // minimal (default)
+  const showAbout = Boolean(personal.bio || personal.avatarUrl || personal.location);
+  const showWork = experience.length > 0 || education.length > 0;
+  const showProjects = projects.length > 0;
+
+  return (
+    <div className={rootClass} style={style}>
+      <MinimalSiteNav
+        brand={personal.fullName.split(' ')[0] || 'Home'}
+        showAbout={showAbout}
+        showWork={showWork}
+        workHref={experience.length > 0 ? '#experience' : '#education'}
+        showProjects={showProjects}
+      />
+
+      <div className="page">
+        <header className="hero" id="home">
+          <div className="hero-glow" aria-hidden="true" />
+          <div className="hero-inner">
+            <p className="hello">Hi! I am</p>
+            <h1>{personal.fullName}</h1>
+            {personal.headline && <p className="headline">{personal.headline}</p>}
+            <div className="hero-actions">
+              {personal.email && (
+                <a className="cta" href={`mailto:${personal.email}`}>
+                  Contact Me
+                </a>
+              )}
+              <Socials
+                socials={socials}
+                email={undefined}
+                phone={personal.phone}
+                whatsapp={personal.whatsapp}
+              />
+            </div>
+            <a className="scroll-cue" href="#about">
+              <span>Scroll for more</span>
+              <span className="scroll-arrow" aria-hidden="true" />
+            </a>
+          </div>
+        </header>
+
+        {skills.length > 0 && (
+          <div className="skill-marquee" aria-hidden="true">
+            <div className="skill-track">
+              {[...skills, ...skills].map((s, i) => (
+                <span key={`${s}-${i}`}>{s}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <main id="main">
+          {showAbout && (
+            <section className="section about-split" id="about">
+              {personal.avatarUrl && (
+                <div className="about-media">
+                  <img
+                    className="about-photo"
+                    src={personal.avatarUrl}
+                    alt={personal.fullName}
+                    width={420}
+                    height={520}
+                  />
+                </div>
+              )}
+              <div className="about-copy">
+                <p className="section-kicker">{titles.about}</p>
+                <h2>About Me</h2>
+                {personal.location && (
+                  <p className="based">
+                    Based in <strong>{personal.location}</strong>
+                  </p>
+                )}
+                {personal.bio && <MarkdownContent className="lead" markdown={personal.bio} />}
+                {skills.length > 0 && (
+                  <ul className="chips">
+                    {skills.map((s) => (
+                      <li key={s}>{s}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </section>
+          )}
+
+          <CareerSections titles={titles} experience={experience} education={education} />
+
+          {showProjects && (
+            <section className="section" id="projects">
+              <div className="section-title">
+                <p className="section-kicker">Selected</p>
+                <h2>{titles.projects}</h2>
+              </div>
+              <ProjectCards projects={projects} linkLabel="View work" />
+            </section>
+          )}
+
+          <section className="section connect" id="contact">
+            <p className="section-kicker">Let&apos;s connect</p>
+            <h2>Say Hi!</h2>
+            {personal.email && (
+              <a className="connect-mail" href={`mailto:${personal.email}`}>
+                {personal.email}
+              </a>
+            )}
+            <Socials
+              socials={socials}
+              email={personal.email}
+              phone={personal.phone}
+              whatsapp={personal.whatsapp}
+            />
+          </section>
+        </main>
+
+        <footer className="footer">
+          <p>
+            © {year} {personal.fullName}
+          </p>
+        </footer>
+      </div>
+    </div>
+  );
+}

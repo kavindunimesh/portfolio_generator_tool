@@ -1,0 +1,3 @@
+ALTER TABLE portfolios
+  ADD COLUMN phone VARCHAR(40) NULL AFTER email,
+  ADD COLUMN whatsapp VARCHAR(40) NULL AFTER phone;

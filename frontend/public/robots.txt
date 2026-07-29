@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /portfolio/
+Disallow: /dashboard
+Disallow: /builder
+Disallow: /login
+Disallow: /register
