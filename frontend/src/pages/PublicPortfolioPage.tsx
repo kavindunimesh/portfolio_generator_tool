@@ -20,10 +20,7 @@ export function PublicPortfolioPage() {
     void api
       .publicPortfolio(userRoute)
       .then((data) => {
-        rememberPortfolioLoaderTheme(
-          data.templateSlug === 'developer' ? 'developer' : 'minimal',
-          userRoute,
-        );
+        rememberPortfolioLoaderTheme(data.templateSlug || 'minimal', userRoute);
         setPortfolio(data);
       })
       .catch((err) => setError(err instanceof Error ? err.message : 'Not found'))

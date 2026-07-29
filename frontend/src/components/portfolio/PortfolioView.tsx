@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import type { Portfolio } from '../../api';
 import { getTemplate, resolveSectionTitles } from '../../templates/catalog';
 import { MarkdownContent } from '../MarkdownContent';
@@ -372,12 +372,14 @@ function PortfolioSiteNav({
   showWork,
   workHref,
   showProjects,
+  end,
 }: {
   brand: string;
   showAbout: boolean;
   showWork: boolean;
   workHref: string;
   showProjects: boolean;
+  end?: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
@@ -421,6 +423,7 @@ function PortfolioSiteNav({
             Contact
           </a>
         </div>
+        {end}
       </div>
     </nav>
   );
@@ -803,29 +806,39 @@ export function PortfolioView({ portfolio }: Props) {
   }
 
   if (slug === 'editorial') {
+    const showAbout = Boolean(personal.bio);
+    const showWork = experience.length > 0 || education.length > 0;
+    const showProjects = projects.length > 0;
+
     return (
       <div className={rootClass} style={style}>
         <div className="paper-grain" aria-hidden="true" />
-        <div className="masthead">
-          <div className="wrap mast-row">
-            <p className="mast-brand">Portfolio</p>
+        <PortfolioSiteNav
+          brand={personal.fullName.split(' ')[0] || 'Portfolio'}
+          showAbout={showAbout}
+          showWork={showWork}
+          workHref={experience.length > 0 ? '#experience' : '#education'}
+          showProjects={showProjects}
+          end={
             <div className="mast-meta">
               <p className="issue">Vol. 01 · {year}</p>
               {personal.location && <p className="issue">{personal.location}</p>}
             </div>
-          </div>
-        </div>
-        <header className="hero wrap">
+          }
+        />
+        <header className="hero wrap" id="home">
           <div className="hero-copy">
             <p className="byline">Featured profile</p>
             <h1>{personal.fullName}</h1>
             {personal.headline && <p className="headline">{personal.headline}</p>}
-            <Socials
-              socials={socials}
-              email={personal.email}
-              phone={personal.phone}
-              whatsapp={personal.whatsapp}
-            />
+            <div id="contact">
+              <Socials
+                socials={socials}
+                email={personal.email}
+                phone={personal.phone}
+                whatsapp={personal.whatsapp}
+              />
+            </div>
           </div>
           <div className="hero-visual">
             {personal.avatarUrl ? (
@@ -840,7 +853,7 @@ export function PortfolioView({ portfolio }: Props) {
         </header>
         <main id="main" className="wrap">
           {personal.bio && (
-            <section className="section about">
+            <section className="section about" id="about">
               <div className="section-rule">
                 <h2>{titles.about}</h2>
                 <span />
@@ -868,7 +881,7 @@ export function PortfolioView({ portfolio }: Props) {
             variant="editorial"
           />
           {projects.length > 0 && (
-            <section className="section">
+            <section className="section" id="projects">
               <div className="section-rule">
                 <h2>{titles.projects}</h2>
                 <span />
