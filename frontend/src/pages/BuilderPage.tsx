@@ -117,7 +117,9 @@ function fromPortfolio(p: Portfolio): FormState {
     userRoute: p.userRoute || '',
     templateSlug: (TEMPLATES.some((t) => t.slug === p.templateSlug)
       ? p.templateSlug
-      : 'minimal') as TemplateSlug,
+      : p.templateSlug === 'terminal'
+        ? 'developer'
+        : 'minimal') as TemplateSlug,
     personal: {
       fullName: p.personal.fullName || '',
       headline: p.personal.headline || '',

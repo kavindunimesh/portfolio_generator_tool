@@ -185,6 +185,7 @@ async function localizeTemplateContext(context: Record<string, unknown>, workDir
 
 export async function renderPortfolioFiles(row: PortfolioRow, workDir: string) {
   let slug = row.template_slug || 'minimal';
+  if (slug === 'terminal') slug = 'developer';
   let templateDir = path.join(env.templatesPath, slug);
   let exists = await fs
     .access(templateDir)

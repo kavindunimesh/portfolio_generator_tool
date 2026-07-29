@@ -1,4 +1,4 @@
-export type TemplateSlug = 'minimal' | 'developer' | 'terminal' | 'aurora' | 'editorial' | 'noir';
+export type TemplateSlug = 'minimal' | 'developer' | 'aurora' | 'editorial' | 'noir';
 
 export type TemplateMeta = {
   slug: TemplateSlug;
@@ -27,14 +27,6 @@ export const TEMPLATES: TemplateMeta[] = [
     preview: { bg: '#0b1220', accent: '#22d3ee', text: '#e2e8f0' },
   },
   {
-    slug: 'terminal',
-    name: 'Terminal',
-    description: 'CLI-inspired developer theme with prompts and mono type.',
-    defaultColor: '#4ade80',
-    defaultMode: 'dark',
-    preview: { bg: '#0a0f0c', accent: '#4ade80', text: '#d1fae5' },
-  },
-  {
     slug: 'aurora',
     name: 'Aurora',
     description: 'Atmospheric gradients and modern creative energy.',
@@ -61,7 +53,8 @@ export const TEMPLATES: TemplateMeta[] = [
 ];
 
 export function getTemplate(slug: string): TemplateMeta {
-  return TEMPLATES.find((t) => t.slug === slug) || TEMPLATES[0];
+  const normalized = slug === 'terminal' ? 'developer' : slug;
+  return TEMPLATES.find((t) => t.slug === normalized) || TEMPLATES[0];
 }
 
 export type SectionTitles = {
@@ -86,13 +79,6 @@ export const SECTION_TITLE_DEFAULTS: Record<string, SectionTitles> = {
     projects: 'Projects',
     education: 'Education',
     experience: 'Experience',
-  },
-  terminal: {
-    about: 'readme',
-    skills: 'stack',
-    projects: 'repos',
-    education: 'training',
-    experience: 'jobs',
   },
   aurora: {
     about: 'About',

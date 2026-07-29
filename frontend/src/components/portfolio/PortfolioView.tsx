@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Portfolio } from '../../api';
-import { getTemplate, resolveSectionTitles, type TemplateSlug } from '../../templates/catalog';
+import { getTemplate, resolveSectionTitles } from '../../templates/catalog';
 import { MarkdownContent } from '../MarkdownContent';
 import { socialIconPaths, type SocialIconName } from './socialIcons';
 
@@ -435,7 +435,7 @@ function CareerSections({
   titles: ReturnType<typeof resolveSectionTitles>;
   experience: Portfolio['experience'];
   education: Portfolio['education'];
-  variant?: 'default' | 'developer' | 'editorial' | 'terminal';
+  variant?: 'default' | 'developer' | 'editorial';
 }) {
   return (
     <>
@@ -445,9 +445,7 @@ function CareerSections({
           className={
             variant === 'developer'
               ? 'panel career-panel'
-              : variant === 'terminal'
-                ? 'section cmd-block'
-                : 'section'
+              : 'section'
           }
         >
           {variant === 'developer' ? (
@@ -462,10 +460,6 @@ function CareerSections({
               <h2>{titles.experience}</h2>
               <span />
             </div>
-          ) : variant === 'terminal' ? (
-            <p className="prompt-line">
-              <span className="ps1">$</span> cat ./{titles.experience}.log
-            </p>
           ) : (
             <div className="section-title">
               <h2>{titles.experience}</h2>
@@ -476,7 +470,6 @@ function CareerSections({
               <h2>{titles.experience}</h2>
             </div>
           )}
-          {variant === 'terminal' && <h2 className="cmd-title">{titles.experience}</h2>}
           <ExperienceList items={experience} />
         </section>
       )}
@@ -486,9 +479,7 @@ function CareerSections({
           className={
             variant === 'developer'
               ? 'panel career-panel'
-              : variant === 'terminal'
-                ? 'section cmd-block'
-                : 'section'
+              : 'section'
           }
         >
           {variant === 'developer' ? (
@@ -503,10 +494,6 @@ function CareerSections({
               <h2>{titles.education}</h2>
               <span />
             </div>
-          ) : variant === 'terminal' ? (
-            <p className="prompt-line">
-              <span className="ps1">$</span> cat ./{titles.education}.log
-            </p>
           ) : (
             <div className="section-title">
               <h2>{titles.education}</h2>
@@ -517,7 +504,6 @@ function CareerSections({
               <h2>{titles.education}</h2>
             </div>
           )}
-          {variant === 'terminal' && <h2 className="cmd-title">{titles.education}</h2>}
           <EducationList items={education} />
         </section>
       )}
@@ -526,7 +512,7 @@ function CareerSections({
 }
 
 export function PortfolioView({ portfolio }: Props) {
-  const slug = (portfolio.templateSlug || 'minimal') as TemplateSlug;
+  const slug = getTemplate(portfolio.templateSlug || 'minimal').slug;
   const template = getTemplate(slug);
   const { personal, socials, skills, projects, theme } = portfolio;
   const experience = portfolio.experience || [];
@@ -659,133 +645,6 @@ export function PortfolioView({ portfolio }: Props) {
               </p>
             </footer>
           </main>
-        </div>
-      </div>
-    );
-  }
-
-  if (slug === 'terminal') {
-    return (
-      <div className={rootClass} style={style}>
-        <div className="term-scan" aria-hidden="true" />
-        <div className="term-shell">
-          <div className="term-chrome">
-            <span className="term-dots" aria-hidden="true">
-              <i />
-              <i />
-              <i />
-            </span>
-            <p className="term-title">portfolio — zsh — {year}</p>
-            <span className="term-path mono">~/dev/{personal.fullName.split(' ')[0]?.toLowerCase() || 'user'}</span>
-          </div>
-          <div className="term-body wrap">
-            <header className="hero">
-              <div className="hero-row">
-                {personal.avatarUrl && (
-                  <img className="avatar" src={personal.avatarUrl} alt={personal.fullName} width={88} height={88} />
-                )}
-                <div className="hero-copy">
-                  <p className="prompt-line">
-                    <span className="ps1">$</span> whoami
-                  </p>
-                  <h1>{personal.fullName}</h1>
-                  {personal.headline && (
-                    <>
-                      <p className="prompt-line muted-cmd">
-                        <span className="ps1">$</span> cat headline.txt
-                      </p>
-                      <p className="headline">{personal.headline}</p>
-                    </>
-                  )}
-                  {personal.location && <p className="meta"># {personal.location}</p>}
-                </div>
-              </div>
-              <Socials
-                socials={socials}
-                email={personal.email}
-                phone={personal.phone}
-                whatsapp={personal.whatsapp}
-              />
-            </header>
-
-            <main id="main">
-              {personal.bio && (
-                <section className="section cmd-block">
-                  <p className="prompt-line">
-                    <span className="ps1">$</span> cat ./{titles.about}.md
-                  </p>
-                  <h2 className="cmd-title">{titles.about}</h2>
-                  <MarkdownContent className="bio" markdown={personal.bio} />
-                </section>
-              )}
-
-              {skills.length > 0 && (
-                <section className="section cmd-block">
-                  <p className="prompt-line">
-                    <span className="ps1">$</span> ls ./{titles.skills}/
-                  </p>
-                  <h2 className="cmd-title">{titles.skills}</h2>
-                  <ul className="chips">
-                    {skills.map((s) => (
-                      <li key={s}>{s}</li>
-                    ))}
-                  </ul>
-                </section>
-              )}
-
-              <CareerSections
-                titles={titles}
-                experience={experience}
-                education={education}
-                variant="terminal"
-              />
-
-              {projects.length > 0 && (
-                <section className="section cmd-block">
-                  <p className="prompt-line">
-                    <span className="ps1">$</span> find ./{titles.projects} -maxdepth 1
-                  </p>
-                  <h2 className="cmd-title">{titles.projects}</h2>
-                  <div className="projects">
-                    {projects.map((p, index) => (
-                      <article className="card" key={`${p.title}-${index}`}>
-                        <div className="card-head">
-                          <span className="mono">drwxr-xr-x</span>
-                          <span className="mono">{String(index + 1).padStart(2, '0')}</span>
-                          <h3>{p.title}</h3>
-                          {p.link && (
-                            <a className="link" href={p.link} rel="noopener noreferrer" target="_blank">
-                              open
-                            </a>
-                          )}
-                        </div>
-                        {p.imageUrl && (
-                          <img className="project-image" src={p.imageUrl} alt={p.title} loading="lazy" />
-                        )}
-                        <div className="card-body">
-                          {p.description && <MarkdownContent markdown={p.description} />}
-                          {p.tech?.length > 0 && (
-                            <ul className="chips small">
-                              {p.tech.map((t) => (
-                                <li key={t}>{t}</li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                </section>
-              )}
-            </main>
-
-            <footer className="footer">
-              <p className="prompt-line">
-                <span className="ps1">$</span> echo &quot;© {year} {personal.fullName}&quot;
-                <span className="cursor" aria-hidden="true" />
-              </p>
-            </footer>
-          </div>
         </div>
       </div>
     );

@@ -47,7 +47,7 @@ export const portfolioUpdateSchema = z.object({
     .nullable()
     .optional(),
   templateSlug: z
-    .enum(['minimal', 'developer', 'terminal', 'aurora', 'editorial', 'noir'])
+    .enum(['minimal', 'developer', 'aurora', 'editorial', 'noir'])
     .default('minimal'),
   personal: z.object({
     fullName: z.string().max(120).default(''),
