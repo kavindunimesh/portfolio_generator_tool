@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import type { Portfolio } from '../../api';
+import { api, type Portfolio } from '../../api';
 import { getTemplate, resolveSectionTitles } from '../../templates/catalog';
 import { MarkdownContent } from '../MarkdownContent';
 import { socialIconPaths, type SocialIconName } from './socialIcons';
@@ -7,6 +7,20 @@ import { socialIconPaths, type SocialIconName } from './socialIcons';
 type Props = {
   portfolio: Portfolio;
 };
+
+function CvDownloadLink({
+  href,
+  className = 'cv-download',
+}: {
+  href: string;
+  className?: string;
+}) {
+  return (
+    <a className={className} href={href} download rel="noopener noreferrer">
+      Download CV
+    </a>
+  );
+}
 
 function digitsOnly(value: string): string {
   return value.replace(/\D/g, '');
@@ -531,6 +545,7 @@ export function PortfolioView({ portfolio }: Props) {
 
   const rootClass = `pf pf-${slug} theme-${theme.mode}${ready ? ' is-ready' : ''}`;
   const style = { ['--accent' as string]: theme.primaryColor || template.defaultColor };
+  const cvHref = portfolio.userRoute ? api.publicCvUrl(portfolio.userRoute) : null;
 
   if (slug === 'developer') {
     const showAbout = Boolean(personal.bio);
@@ -558,6 +573,7 @@ export function PortfolioView({ portfolio }: Props) {
               <h1>{personal.fullName}</h1>
               {personal.headline && <p className="headline">{personal.headline}</p>}
               {personal.location && <p className="meta">{personal.location}</p>}
+              {cvHref ? <CvDownloadLink href={cvHref} className="cv-download rail-cv" /> : null}
             </div>
             {skills.length > 0 && (
               <div className="rail-skills">
@@ -705,6 +721,7 @@ export function PortfolioView({ portfolio }: Props) {
                     Say hello
                   </a>
                 )}
+                {cvHref ? <CvDownloadLink href={cvHref} className="hero-cta ghost" /> : null}
               </div>
               <div id="contact">
                 <Socials
@@ -831,6 +848,11 @@ export function PortfolioView({ portfolio }: Props) {
             <p className="byline">Featured profile</p>
             <h1>{personal.fullName}</h1>
             {personal.headline && <p className="headline">{personal.headline}</p>}
+            {cvHref ? (
+              <div className="hero-actions">
+                <CvDownloadLink href={cvHref} className="cv-download editorial-cv" />
+              </div>
+            ) : null}
             <div id="contact">
               <Socials
                 socials={socials}
@@ -959,6 +981,7 @@ export function PortfolioView({ portfolio }: Props) {
                     Contact
                   </a>
                 ) : null}
+                {cvHref ? <CvDownloadLink href={cvHref} className="hero-cta ghost" /> : null}
               </div>
             </div>
             {personal.avatarUrl ? (
@@ -1074,6 +1097,7 @@ export function PortfolioView({ portfolio }: Props) {
                   Contact Me
                 </a>
               )}
+              {cvHref ? <CvDownloadLink href={cvHref} className="cta cv-download" /> : null}
               <Socials
                 socials={socials}
                 email={undefined}

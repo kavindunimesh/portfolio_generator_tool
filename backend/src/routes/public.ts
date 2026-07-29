@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import { query } from '../db';
 import { PortfolioRow, serializePortfolio } from '../services/portfolioMapper';
+import { buildCvPdf, cvFilenameFor } from '../services/cvPdfService';
 import { TEMPLATES } from '../templates/catalog';
 import { isReservedRoute, isValidUserRoute } from '../utils/routes';
 import { requireAuth } from '../middleware/auth';
+import { asyncHandler } from '../middleware/asyncHandler';
 
 const router = Router();
 
@@ -47,5 +49,33 @@ router.get('/public/portfolios/:userRoute', async (req, res) => {
   }
   return res.json(serializePortfolio(rows[0]));
 });
+
+router.get(
+  '/public/portfolios/:userRoute/cv',
+  asyncHandler(async (req, res) => {
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+    const userRoute = req.params.userRoute.toLowerCase();
+    const rows = await query<PortfolioRow[]>(
+      `SELECT * FROM portfolios
+       WHERE user_route = :userRoute AND is_published = 1
+       LIMIT 1`,
+      { userRoute }
+    );
+    if (!rows.length) {
+      return res.status(404).json({ error: 'Portfolio not found' });
+    }
+    const portfolio = serializePortfolio(rows[0]);
+    if (!portfolio.personal.fullName.trim()) {
+      return res.status(404).json({ error: 'CV not available' });
+    }
+    const pdf = await buildCvPdf(portfolio);
+    const filename = cvFilenameFor(portfolio);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', String(pdf.length));
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    return res.send(pdf);
+  })
+);
 
 export default router;

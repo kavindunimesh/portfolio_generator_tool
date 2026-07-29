@@ -138,8 +138,26 @@ export const api = {
     request<{ id: string; downloadUrl: string; filename: string }>('/api/portfolio/download', {
       method: 'POST',
     }),
+  downloadCv: async () => {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_URL}/api/portfolio/cv`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(
+        typeof data.error === 'string' ? data.error : `CV download failed (${res.status})`
+      );
+    }
+    const blob = await res.blob();
+    const disposition = res.headers.get('Content-Disposition') || '';
+    const match = disposition.match(/filename="([^"]+)"/i);
+    return { blob, filename: match?.[1] || 'cv.pdf' };
+  },
   publicPortfolio: (userRoute: string) =>
     request<Portfolio>(`/api/public/portfolios/${encodeURIComponent(userRoute)}`),
+  publicCvUrl: (userRoute: string) =>
+    `${API_URL}/api/public/portfolios/${encodeURIComponent(userRoute)}/cv`,
   uploadQuota: () =>
     request<{ usedBytes: number; maxBytes: number; remainingBytes: number }>('/api/uploads/quota'),
   uploadImage: async (file: File, purpose: 'avatar' | 'project' | 'logo' | 'favicon', replaceUrl?: string) => {

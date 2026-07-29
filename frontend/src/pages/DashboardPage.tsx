@@ -9,6 +9,7 @@ export function DashboardPage() {
   const { portfolio, refresh, username } = useAuth();
   const toast = useToast();
   const [busy, setBusy] = useState(false);
+  const [cvBusy, setCvBusy] = useState(false);
 
   async function publish() {
     if (!portfolio?.userRoute) {
@@ -61,6 +62,24 @@ export function DashboardPage() {
       toast.error('Download failed', err instanceof Error ? err.message : 'Try again.');
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function downloadCv() {
+    setCvBusy(true);
+    try {
+      const { blob, filename } = await api.downloadCv();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('CV ready', 'Your PDF curriculum vitae has downloaded.');
+    } catch (err) {
+      toast.error('CV download failed', err instanceof Error ? err.message : 'Try again.');
+    } finally {
+      setCvBusy(false);
     }
   }
 
@@ -172,10 +191,27 @@ export function DashboardPage() {
           <button
             className="btn btn-primary"
             type="button"
-            disabled={busy}
+            disabled={busy || cvBusy}
             onClick={() => void downloadZip()}
           >
             {busy ? 'Preparing…' : 'Download ZIP'}
+          </button>
+        </section>
+
+        <section className="dashboard-card">
+          <div className="dashboard-card-icon download">CV</div>
+          <h3>Download CV</h3>
+          <p>
+            Generate a clean PDF resume from your portfolio — profile, experience, education, skills,
+            and projects.
+          </p>
+          <button
+            className="btn btn-primary"
+            type="button"
+            disabled={busy || cvBusy || !portfolio.personal.fullName}
+            onClick={() => void downloadCv()}
+          >
+            {cvBusy ? 'Preparing…' : 'Download CV PDF'}
           </button>
         </section>
 
@@ -196,7 +232,7 @@ export function DashboardPage() {
             <button
               className="btn btn-ghost"
               type="button"
-              disabled={busy}
+              disabled={busy || cvBusy}
               onClick={() => void unpublish()}
             >
               Unpublish
@@ -205,7 +241,7 @@ export function DashboardPage() {
             <button
               className="btn btn-primary"
               type="button"
-              disabled={busy || !hasRoute}
+              disabled={busy || cvBusy || !hasRoute}
               onClick={() => void publish()}
             >
               Publish now

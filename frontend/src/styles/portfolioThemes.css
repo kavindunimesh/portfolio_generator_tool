@@ -2097,6 +2097,22 @@
   margin: 0.35rem 0 0;
   color: var(--muted);
 }
+.pf-developer .rail-cv {
+  display: inline-flex;
+  margin-top: 1rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--border);
+  color: var(--accent);
+  text-decoration: none;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+.pf-developer .rail-cv:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
 .pf-developer .rail-skills {
   width: 100%;
   min-width: 0;
@@ -3781,6 +3797,30 @@
   font-family: "Libre Baskerville", Georgia, serif;
   max-width: 28rem;
   line-height: 1.4;
+}
+.pf-editorial .hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.35rem;
+}
+.pf-editorial .editorial-cv {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55rem 0.95rem;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: border-color 0.18s ease, color 0.18s ease;
+}
+.pf-editorial .editorial-cv:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 .pf-editorial .socials {
   margin-top: 1.75rem;

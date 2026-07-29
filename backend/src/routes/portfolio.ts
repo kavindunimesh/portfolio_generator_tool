@@ -10,6 +10,7 @@ import { PortfolioRow, serializePortfolio } from '../services/portfolioMapper';
 import { isReservedRoute, isValidUserRoute } from '../utils/routes';
 import { env } from '../config';
 import { renderPortfolioFiles, zipDirectory } from '../services/zipService';
+import { buildCvPdf, cvFilenameFor } from '../services/cvPdfService';
 
 const router = Router();
 
@@ -157,6 +158,30 @@ router.post(
       return res.status(404).json({ error: 'Portfolio not found' });
     }
     return res.json(serializePortfolio(updated[0]));
+  })
+);
+
+router.get(
+  '/cv',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const rows = await query<PortfolioRow[]>(
+      'SELECT * FROM portfolios WHERE user_id = :userId LIMIT 1',
+      { userId: req.user!.id }
+    );
+    if (!rows.length) {
+      return res.status(404).json({ error: 'Portfolio not found' });
+    }
+    const portfolio = serializePortfolio(rows[0]);
+    if (!portfolio.personal.fullName.trim()) {
+      return res.status(400).json({ error: 'Add your name before downloading a CV' });
+    }
+    const pdf = await buildCvPdf(portfolio);
+    const filename = cvFilenameFor(portfolio);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', String(pdf.length));
+    return res.send(pdf);
   })
 );
 
