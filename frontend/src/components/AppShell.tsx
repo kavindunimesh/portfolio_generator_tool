@@ -15,7 +15,7 @@ export function AppShell() {
     <div className="app app-light">
       <header className="topbar">
         <Link to="/" className="brand">
-          <span className="brand-mark" aria-hidden />
+          <img className="brand-mark" src="/logo-mark.png" alt="" width={28} height={28} />
           Portfolio<span className="brand-accent">Gen</span>
         </Link>
         <nav>

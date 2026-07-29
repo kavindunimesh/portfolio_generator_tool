@@ -29,11 +29,14 @@ export function HomePage() {
     <main className="home">
       <section className="home-hero">
         <div className="home-hero-copy">
-          <p className="home-brand">PortfolioGen</p>
-          <h1>Your portfolio, ready to share</h1>
+          <div className="home-brand-row">
+            <img className="home-brand-logo" src="/logo-mark.png" alt="" width={40} height={40} />
+            <p className="home-brand">PortfolioGen</p>
+          </div>
+          <h1>Build a portfolio you can publish today</h1>
           <p className="home-lead">
-            Build a single-page portfolio once. Download clean source for SEO, or host it live with
-            us.
+            Fill in your details once. Download clean HTML for SEO, or host a live page at your own
+            link.
           </p>
           <div className="home-cta">
             <Link className="btn btn-primary btn-lg" to={token ? '/builder' : '/register'}>
@@ -45,30 +48,45 @@ export function HomePage() {
               </Link>
             )}
           </div>
-          <ul className="home-trust">
-            <li>Free to start</li>
-            <li>SEO-friendly ZIP</li>
-            <li>Live hosting</li>
-          </ul>
+          <p className="home-proof">Free to start · ZIP download · Instant hosting</p>
         </div>
 
         <div className="home-hero-visual" aria-hidden>
+          <div className="home-hero-glow" />
           <div className="home-mock">
             <div className="home-mock-bar">
               <span />
               <span />
               <span />
-              <em>portfolio/alex-rivera</em>
+              <em>yoursite.com/portfolio/alex</em>
             </div>
             <div className="home-mock-body">
-              <div className="home-mock-avatar" />
-              <strong>Alex Rivera</strong>
-              <span>Product engineer</span>
-              <p>I design and ship clear web products for growing teams.</p>
+              <div className="home-mock-top">
+                <div className="home-mock-avatar" />
+                <div className="home-mock-intro">
+                  <strong>Alex Rivera</strong>
+                  <span>Product engineer</span>
+                </div>
+              </div>
+              <p>
+                I design and ship clear web products for growing teams — from ERP suites to
+                AI-powered tools.
+              </p>
               <div className="home-mock-tags">
                 <span>React</span>
                 <span>Node</span>
                 <span>MySQL</span>
+                <span>TypeScript</span>
+              </div>
+              <div className="home-mock-work">
+                <article>
+                  <b>ERP Suite</b>
+                  <small>Operations platform</small>
+                </article>
+                <article>
+                  <b>Music Bot</b>
+                  <small>Discord + AI</small>
+                </article>
               </div>
             </div>
           </div>
