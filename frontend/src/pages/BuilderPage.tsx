@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, type Portfolio } from '../api';
 import { useAuth } from '../auth';
@@ -285,10 +285,16 @@ export function BuilderPage() {
   });
   const [routeHint, setRouteHint] = useState('');
   const [busy, setBusy] = useState(false);
+  const tabsNavRef = useRef<HTMLElement | null>(null);
   const titleDefaults = resolveSectionTitles(form.templateSlug);
 
   useEffect(() => {
     sessionStorage.setItem('builderActiveTab', activeTab);
+  }, [activeTab]);
+
+  useEffect(() => {
+    const active = tabsNavRef.current?.querySelector<HTMLElement>('.builder-tab.active');
+    active?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
   }, [activeTab]);
 
   useEffect(() => {
@@ -478,7 +484,12 @@ export function BuilderPage() {
               }}
             />
           </div>
-          <nav className="builder-tabs" aria-label="Builder sections" role="tablist">
+          <nav
+            ref={tabsNavRef}
+            className="builder-tabs"
+            aria-label="Builder sections"
+            role="tablist"
+          >
             {TABS.map((tab) => {
               const ready = isTabReady(tab.id, form);
               const active = activeTab === tab.id;
