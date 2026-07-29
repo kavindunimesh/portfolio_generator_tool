@@ -118,27 +118,29 @@ export function DashboardPage() {
       <NoIndex />
 
       <header className="dashboard-header">
-        <div>
+        <div className="dashboard-header-copy">
           <p className="dashboard-kicker">Welcome back, {username}</p>
-          <h1>Dashboard</h1>
+          <div className="dashboard-title-row">
+            <h1>Dashboard</h1>
+            <div className={`dashboard-status-badge ${isLive ? 'live' : 'draft'}`}>
+              <span className="status-dot" />
+              {isLive ? 'Live' : 'Draft'}
+            </div>
+          </div>
           <p className="muted">Manage your portfolio, download source, or host it with us.</p>
-        </div>
-        <div className={`dashboard-status-badge ${isLive ? 'live' : 'draft'}`}>
-          <span className="status-dot" />
-          {isLive ? 'Live' : 'Draft'}
         </div>
       </header>
 
       <section className="dashboard-overview">
         <div className="overview-main">
-          <div className="overview-avatar">
+          <div className={`overview-avatar${portfolio.personal.avatarUrl ? ' has-image' : ''}`}>
             {portfolio.personal.avatarUrl ? (
               <img src={portfolio.personal.avatarUrl} alt="" />
             ) : (
               <span>{(portfolio.personal.fullName || username || '?').charAt(0).toUpperCase()}</span>
             )}
           </div>
-          <div>
+          <div className="overview-copy">
             <h2>{portfolio.personal.fullName || 'Untitled portfolio'}</h2>
             <p className="overview-headline">
               {portfolio.personal.headline || 'No headline yet'}
