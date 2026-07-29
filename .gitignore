@@ -4,5 +4,9 @@ release/
 .env
 deploy/
 docs/
+.data/
+upload.py
+frontend.zip
+api.zip
 *.log
 .DS_Store
