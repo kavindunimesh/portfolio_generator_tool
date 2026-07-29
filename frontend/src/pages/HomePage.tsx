@@ -2,26 +2,23 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../auth';
 
 const steps = [
-  { n: '01', title: 'Create account', desc: 'Username + password. Takes seconds.' },
-  { n: '02', title: 'Fill your details', desc: 'Bio, skills, projects, and a public route.' },
-  { n: '03', title: 'Download or host', desc: 'Zip source for SEO, or go live instantly.' },
+  { n: '01', title: 'Create account', desc: 'Sign up with a username and password — free, no card.' },
+  { n: '02', title: 'Add your details', desc: 'Profile, experience, skills, and projects in one place.' },
+  { n: '03', title: 'Download or publish', desc: 'Export SEO-ready HTML, or go live at your public link.' },
 ];
 
-const highlights = [
+const options = [
   {
-    title: 'Static source zip',
-    desc: 'SEO-ready HTML & CSS you can deploy on Netlify, Vercel, or cPanel.',
-    tag: 'Download',
+    title: 'Static ZIP download',
+    desc: 'Clean HTML & CSS ready for Netlify, Vercel, or cPanel.',
   },
   {
     title: 'Instant hosting',
-    desc: 'Publish at /portfolio/your-name and share a link right away.',
-    tag: 'Host',
+    desc: 'Publish at /portfolio/your-name and share the link.',
   },
   {
     title: 'Edit anytime',
-    desc: 'Update MySQL-backed details and your live page refreshes with you.',
-    tag: 'Sync',
+    desc: 'Update your details — the hosted page stays in sync.',
   },
 ];
 
@@ -31,28 +28,16 @@ export function HomePage() {
   return (
     <main className="home">
       <section className="home-hero">
-        <div className="home-orb home-orb-a" aria-hidden />
-        <div className="home-orb home-orb-b" aria-hidden />
-        <div className="home-grid-bg" aria-hidden />
-
         <div className="home-hero-copy">
-          <div className="home-pill">
-            <span className="home-pill-dot" />
-            Live in minutes — no design tools
-          </div>
-
-          <h1>
-            Your portfolio, <em>ready to ship</em>
-          </h1>
-
+          <p className="home-brand">PortfolioGen</p>
+          <h1>Your portfolio, ready to share</h1>
           <p className="home-lead">
-            Build a single-page portfolio, download clean source code, or host it with us at{' '}
-            <code>/portfolio/your-name</code>.
+            Build a single-page portfolio once. Download clean source for SEO, or host it live with
+            us.
           </p>
-
           <div className="home-cta">
             <Link className="btn btn-primary btn-lg" to={token ? '/builder' : '/register'}>
-              {token ? 'Open builder →' : 'Start free →'}
+              {token ? 'Open builder' : 'Get started free'}
             </Link>
             {!token && (
               <Link className="btn btn-secondary btn-lg" to="/login">
@@ -60,86 +45,78 @@ export function HomePage() {
               </Link>
             )}
           </div>
-
           <ul className="home-trust">
-            <li>No credit card</li>
-            <li>Static HTML zip</li>
-            <li>cPanel friendly</li>
+            <li>Free to start</li>
+            <li>SEO-friendly ZIP</li>
+            <li>Live hosting</li>
           </ul>
         </div>
 
-        <div className="home-preview" aria-hidden>
-          <div className="preview-window">
-            <div className="preview-chrome">
+        <div className="home-hero-visual" aria-hidden>
+          <div className="home-mock">
+            <div className="home-mock-bar">
               <span />
               <span />
               <span />
-              <p>portfolio/alex-rivera</p>
+              <em>portfolio/alex-rivera</em>
             </div>
-            <div className="preview-body">
-              <div className="preview-avatar" />
-              <div className="preview-lines">
-                <strong>Alex Rivera</strong>
-                <span>Full-stack developer</span>
-                <p>I build fast web products with clean UX.</p>
-              </div>
-              <div className="preview-chips">
+            <div className="home-mock-body">
+              <div className="home-mock-avatar" />
+              <strong>Alex Rivera</strong>
+              <span>Product engineer</span>
+              <p>I design and ship clear web products for growing teams.</p>
+              <div className="home-mock-tags">
                 <span>React</span>
                 <span>Node</span>
                 <span>MySQL</span>
               </div>
-              <div className="preview-cards">
-                <article>
-                  <b>ERP Suite</b>
-                  <small>Operations platform</small>
-                </article>
-                <article>
-                  <b>Music Bot</b>
-                  <small>AI-powered Discord</small>
-                </article>
-              </div>
             </div>
           </div>
-          <div className="preview-float preview-float-zip">ZIP ready</div>
-          <div className="preview-float preview-float-live">● Live</div>
         </div>
       </section>
 
-      <section className="home-steps">
+      <section className="home-steps" aria-labelledby="home-steps-title">
         <div className="home-section-head">
           <p className="home-kicker">How it works</p>
-          <h2>Three steps. Done.</h2>
+          <h2 id="home-steps-title">Three steps to a live portfolio</h2>
         </div>
         <ol className="home-step-list">
           {steps.map((s) => (
             <li key={s.n}>
               <span className="step-n">{s.n}</span>
-              <div>
-                <h3>{s.title}</h3>
-                <p>{s.desc}</p>
-              </div>
+              <h3>{s.title}</h3>
+              <p>{s.desc}</p>
             </li>
           ))}
         </ol>
       </section>
 
-      <section className="home-highlights">
-        {highlights.map((h) => (
-          <article key={h.title} className="home-highlight-card">
-            <span className="home-tag">{h.tag}</span>
-            <h3>{h.title}</h3>
-            <p>{h.desc}</p>
-          </article>
-        ))}
+      <section className="home-options" aria-labelledby="home-options-title">
+        <div className="home-section-head">
+          <p className="home-kicker">What you get</p>
+          <h2 id="home-options-title">Built for shipping, not designing</h2>
+        </div>
+        <ul className="home-option-list">
+          {options.map((o) => (
+            <li key={o.title}>
+              <h3>{o.title}</h3>
+              <p>{o.desc}</p>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="home-banner">
         <div>
-          <h2>Ready when you are</h2>
-          <p>Register, save details, download or publish — your call.</p>
+          <h2>{token ? 'Continue where you left off' : 'Start in about a minute'}</h2>
+          <p>
+            {token
+              ? 'Jump back into the builder or open your dashboard.'
+              : 'Register free, add your details, then download or publish.'}
+          </p>
         </div>
         <Link className="btn btn-primary btn-lg" to={token ? '/dashboard' : '/register'}>
-          {token ? 'Go to dashboard →' : 'Create account →'}
+          {token ? 'Go to dashboard' : 'Create account'}
         </Link>
       </section>
     </main>

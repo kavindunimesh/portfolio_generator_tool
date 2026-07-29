@@ -22,6 +22,167 @@ async function copyDir(src: string, dest: string) {
   }
 }
 
+function extensionFromUrlOrType(url: string, contentType: string | null): string {
+  const type = (contentType || '').split(';')[0].trim().toLowerCase();
+  if (type === 'image/jpeg' || type === 'image/jpg') return '.jpg';
+  if (type === 'image/png') return '.png';
+  if (type === 'image/webp') return '.webp';
+  if (type === 'image/gif') return '.gif';
+  if (type === 'image/svg+xml') return '.svg';
+  if (type === 'image/x-icon' || type === 'image/vnd.microsoft.icon') return '.ico';
+
+  try {
+    const ext = path.extname(new URL(url).pathname).toLowerCase();
+    if (['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg', '.ico'].includes(ext)) {
+      return ext === '.jpeg' ? '.jpg' : ext;
+    }
+  } catch {
+    // ignore invalid URL pathname
+  }
+  return '.bin';
+}
+
+function isHttpUrl(value: string): boolean {
+  return /^https?:\/\//i.test(value.trim());
+}
+
+type ImageLocalizer = {
+  localize: (url: string, basename: string) => Promise<string>;
+};
+
+function createImageLocalizer(assetsDir: string): ImageLocalizer {
+  const cache = new Map<string, Promise<string>>();
+  let counter = 0;
+
+  return {
+    localize(url: string, basename: string) {
+      const trimmed = (url || '').trim();
+      if (!trimmed || !isHttpUrl(trimmed)) return Promise.resolve(trimmed);
+
+      const existing = cache.get(trimmed);
+      if (existing) return existing;
+
+      const job = (async () => {
+        try {
+          const response = await fetch(trimmed, {
+            redirect: 'follow',
+            headers: { Accept: 'image/*,*/*;q=0.8' },
+          });
+          if (!response.ok) {
+            console.warn(`ZIP image download failed (${response.status}): ${trimmed}`);
+            return trimmed;
+          }
+          const buffer = Buffer.from(await response.arrayBuffer());
+          if (!buffer.length) return trimmed;
+
+          const ext = extensionFromUrlOrType(trimmed, response.headers.get('content-type'));
+          const safeBase =
+            basename
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/^-|-$/g, '')
+              .slice(0, 40) || 'image';
+          counter += 1;
+          const filename = `${safeBase}-${counter}${ext}`;
+          await fs.writeFile(path.join(assetsDir, filename), buffer);
+          return `./assets/${filename}`;
+        } catch (err) {
+          console.warn('ZIP image download error:', trimmed, err);
+          return trimmed;
+        }
+      })();
+
+      cache.set(trimmed, job);
+      return job;
+    },
+  };
+}
+
+async function localizeHtmlImages(
+  html: string,
+  localizer: ImageLocalizer,
+  prefix: string
+): Promise<string> {
+  if (!html) return html;
+  const pattern = /(<img\b[^>]*?\bsrc=["'])(https?:\/\/[^"']+)(["'])/gi;
+  const matches = [...html.matchAll(pattern)];
+  if (!matches.length) return html;
+
+  let next = html;
+  let i = 0;
+  for (const match of matches) {
+    const full = match[0];
+    const before = match[1];
+    const url = match[2];
+    const after = match[3];
+    i += 1;
+    const local = await localizer.localize(url, `${prefix}-${i}`);
+    if (local !== url) {
+      next = next.replace(full, `${before}${local}${after}`);
+    }
+  }
+  return next;
+}
+
+async function localizeTemplateContext(context: Record<string, unknown>, workDir: string) {
+  const assetsDir = path.join(workDir, 'assets');
+  await fs.mkdir(assetsDir, { recursive: true });
+  const localizer = createImageLocalizer(assetsDir);
+
+  const next = { ...context };
+
+  next.avatarUrl = await localizer.localize(String(next.avatarUrl || ''), 'avatar');
+  next.faviconUrl = await localizer.localize(String(next.faviconUrl || ''), 'favicon');
+  next.ogImageUrl = await localizer.localize(String(next.ogImageUrl || ''), 'og-image');
+  next.bioHtml = await localizeHtmlImages(String(next.bioHtml || ''), localizer, 'bio');
+
+  if (Array.isArray(next.projects)) {
+    next.projects = await Promise.all(
+      next.projects.map(async (project, index) => {
+        const item = { ...(project as Record<string, unknown>) };
+        item.imageUrl = await localizer.localize(String(item.imageUrl || ''), `project-${index + 1}`);
+        item.descriptionHtml = await localizeHtmlImages(
+          String(item.descriptionHtml || ''),
+          localizer,
+          `project-${index + 1}-desc`
+        );
+        return item;
+      })
+    );
+  }
+
+  if (Array.isArray(next.experience)) {
+    next.experience = await Promise.all(
+      next.experience.map(async (exp, index) => {
+        const item = { ...(exp as Record<string, unknown>) };
+        item.logoUrl = await localizer.localize(String(item.logoUrl || ''), `experience-${index + 1}`);
+        item.descriptionHtml = await localizeHtmlImages(
+          String(item.descriptionHtml || ''),
+          localizer,
+          `experience-${index + 1}-desc`
+        );
+        return item;
+      })
+    );
+  }
+
+  if (Array.isArray(next.education)) {
+    next.education = await Promise.all(
+      next.education.map(async (edu, index) => {
+        const item = { ...(edu as Record<string, unknown>) };
+        item.descriptionHtml = await localizeHtmlImages(
+          String(item.descriptionHtml || ''),
+          localizer,
+          `education-${index + 1}-desc`
+        );
+        return item;
+      })
+    );
+  }
+
+  return next;
+}
+
 export async function renderPortfolioFiles(row: PortfolioRow, workDir: string) {
   let slug = row.template_slug || 'minimal';
   let templateDir = path.join(env.templatesPath, slug);
@@ -47,12 +208,22 @@ export async function renderPortfolioFiles(row: PortfolioRow, workDir: string) {
   const hbsPath = path.join(templateDir, 'index.html.hbs');
   const source = await fs.readFile(hbsPath, 'utf8');
   const template = Handlebars.compile(source);
-  const html = template(toTemplateContext(row));
+  const context = await localizeTemplateContext(
+    toTemplateContext(row) as unknown as Record<string, unknown>,
+    workDir
+  );
+  const html = template(context);
   await fs.writeFile(path.join(workDir, 'index.html'), html, 'utf8');
 
   const readme = `# ${row.full_name || 'Portfolio'}
 
 Static single-page portfolio generated by Portfolio Generator.
+
+## Contents
+
+- \`index.html\` — your portfolio page
+- \`styles.css\` — theme styles
+- \`assets/\` — downloaded images (avatar, projects, logos, favicon, etc.)
 
 ## Run locally
 
@@ -65,6 +236,8 @@ npx serve .
 ## Deploy
 
 Upload this folder to Netlify, Vercel, GitHub Pages, or any static host / cPanel \`public_html\`.
+
+Keep the \`assets\` folder next to \`index.html\` so images load offline / on your host.
 
 ## SEO
 

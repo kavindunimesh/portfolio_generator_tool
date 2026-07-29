@@ -12,7 +12,7 @@ export function AppShell() {
   }
 
   return (
-    <div className="app">
+    <div className="app app-light">
       <header className="topbar">
         <Link to="/" className="brand">
           <span className="brand-mark" aria-hidden />

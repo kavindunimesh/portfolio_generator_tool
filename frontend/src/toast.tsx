@@ -6,6 +6,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { createId } from './lib/id';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
@@ -57,7 +58,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const push = useCallback(
     (input: ToastInput) => {
-      const id = crypto.randomUUID();
+      const id = createId();
       const type = input.type ?? 'info';
       const toastItem: Toast = {
         id,

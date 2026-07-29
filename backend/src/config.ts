@@ -5,6 +5,7 @@ dotenv.config();
 
 export const env = {
   port: Number(process.env.PORT || 4000),
+  host: process.env.HOST || '0.0.0.0',
   mysql: {
     host: process.env.MYSQL_HOST || '127.0.0.1',
     port: Number(process.env.MYSQL_PORT || 3306),
@@ -17,7 +18,7 @@ export const env = {
   templatesPath: path.resolve(process.cwd(), process.env.TEMPLATES_PATH || './templates'),
   zipTtlDays: Number(process.env.ZIP_TTL_DAYS || 7),
   publicAppUrl: process.env.PUBLIC_APP_URL || 'http://localhost:5173',
-  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  corsOrigin: process.env.CORS_ORIGIN || '*',
   r2: {
     region: process.env.FILE_BUCKET_PUB_REGION || 'auto',
     secretAccessKey: process.env.FILE_BUCKET_PUB_SECRET_ACCESS_KEY || '',

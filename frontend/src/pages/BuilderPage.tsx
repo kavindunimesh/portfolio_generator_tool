@@ -5,12 +5,15 @@ import { useAuth } from '../auth';
 import { NoIndex } from '../components/NoIndex';
 import { ImageUpload } from '../components/ImageUpload';
 import { MarkdownRichEditor } from '../components/MarkdownRichEditor';
+import { createId } from '../lib/id';
 import { useToast } from '../toast';
 import { TEMPLATES, getTemplate, resolveSectionTitles, type TemplateSlug } from '../templates/catalog';
 
 type ExperienceItem = Portfolio['experience'][number] & { clientId: string };
+type EducationItem = Portfolio['education'][number] & { clientId: string };
 
 type ProjectFormItem = {
+  clientId: string;
   title: string;
   description: string;
   techText: string;
@@ -25,7 +28,7 @@ type FormState = {
   socials: Portfolio['socials'];
   skillsText: string;
   projects: ProjectFormItem[];
-  education: Portfolio['education'];
+  education: EducationItem[];
   experience: ExperienceItem[];
   sectionTitles: Portfolio['sectionTitles'];
   seo: Portfolio['seo'];
@@ -45,17 +48,18 @@ const TABS: { id: TabId; label: string; desc: string }[] = [
   { id: 'design', label: 'Design', desc: 'Route, template & theme' },
 ];
 
-const emptyEducation = {
+const emptyEducation = (): EducationItem => ({
+  clientId: createId(),
   school: '',
   degree: '',
   field: '',
   startDate: '',
   endDate: '',
   description: '',
-};
+});
 
 const emptyExperience = (): ExperienceItem => ({
-  clientId: crypto.randomUUID(),
+  clientId: createId(),
   company: '',
   role: '',
   location: '',
@@ -63,6 +67,15 @@ const emptyExperience = (): ExperienceItem => ({
   endDate: '',
   description: '',
   logoUrl: '',
+});
+
+const emptyProject = (): ProjectFormItem => ({
+  clientId: createId(),
+  title: '',
+  description: '',
+  techText: '',
+  link: '',
+  imageUrl: '',
 });
 
 const emptyForm: FormState = {
@@ -80,8 +93,8 @@ const emptyForm: FormState = {
   },
   socials: { github: '', linkedin: '', website: '', twitter: '', facebook: '', tiktok: '', youtube: '', behance: '', dribbble: '', instagram: '' },
   skillsText: '',
-  projects: [{ title: '', description: '', techText: '', link: '', imageUrl: '' }],
-  education: [{ ...emptyEducation }],
+  projects: [emptyProject()],
+  education: [emptyEducation()],
   experience: [emptyExperience()],
   sectionTitles: { about: '', skills: '', projects: '', education: '', experience: '' },
   seo: {
@@ -119,15 +132,17 @@ function fromPortfolio(p: Portfolio): FormState {
     skillsText: (p.skills || []).join(', '),
     projects: p.projects?.length
       ? p.projects.map((x) => ({
+          clientId: createId(),
           title: x.title || '',
           description: x.description || '',
           techText: (x.tech || []).join(', '),
           link: x.link || '',
           imageUrl: x.imageUrl || '',
         }))
-      : [{ title: '', description: '', techText: '', link: '', imageUrl: '' }],
+      : [emptyProject()],
     education: p.education?.length
       ? p.education.map((x) => ({
+          clientId: createId(),
           school: x.school || '',
           degree: x.degree || '',
           field: x.field || '',
@@ -135,10 +150,10 @@ function fromPortfolio(p: Portfolio): FormState {
           endDate: x.endDate || '',
           description: x.description || '',
         }))
-      : [{ ...emptyEducation }],
+      : [emptyEducation()],
     experience: p.experience?.length
       ? p.experience.map((x) => ({
-          clientId: crypto.randomUUID(),
+          clientId: createId(),
           company: x.company || '',
           role: x.role || '',
           location: x.location || '',
@@ -159,7 +174,7 @@ export function BuilderPage() {
   const navigate = useNavigate();
   const toast = useToast();
   const [form, setForm] = useState<FormState>(emptyForm);
-  const [collapsedRoles, setCollapsedRoles] = useState<Set<string>>(() => new Set());
+  const [collapsedItems, setCollapsedItems] = useState<Set<string>>(() => new Set());
   const [activeTab, setActiveTab] = useState<TabId>(() => {
     const saved = sessionStorage.getItem('builderActiveTab');
     return TABS.some((t) => t.id === saved) ? (saved as TabId) : 'profile';
@@ -176,19 +191,23 @@ export function BuilderPage() {
     if (portfolio) {
       const next = fromPortfolio(portfolio);
       setForm(next);
-      // Collapse filled roles by default so the form stays scannable
-      setCollapsedRoles(
-        new Set(
-          next.experience
+      // Collapse filled entries by default so the form stays scannable
+      setCollapsedItems(
+        new Set([
+          ...next.experience
             .filter((e) => e.company.trim() || e.role.trim())
-            .map((e) => e.clientId)
-        )
+            .map((e) => e.clientId),
+          ...next.education
+            .filter((e) => e.school.trim() || e.degree.trim())
+            .map((e) => e.clientId),
+          ...next.projects.filter((p) => p.title.trim()).map((p) => p.clientId),
+        ])
       );
     }
   }, [portfolio]);
 
-  function toggleRoleCollapsed(clientId: string) {
-    setCollapsedRoles((prev) => {
+  function toggleCollapsed(clientId: string) {
+    setCollapsedItems((prev) => {
       const next = new Set(prev);
       if (next.has(clientId)) next.delete(clientId);
       else next.add(clientId);
@@ -196,19 +215,46 @@ export function BuilderPage() {
     });
   }
 
-  function moveExperience(index: number, direction: -1 | 1) {
+  function moveInList<T>(list: T[], index: number, direction: -1 | 1): T[] | null {
     const target = index + direction;
-    if (target < 0 || target >= form.experience.length) return;
-    const experience = [...form.experience];
-    const [item] = experience.splice(index, 1);
-    experience.splice(target, 0, item);
-    setForm({ ...form, experience });
+    if (target < 0 || target >= list.length) return null;
+    const next = [...list];
+    const [item] = next.splice(index, 1);
+    next.splice(target, 0, item);
+    return next;
+  }
+
+  function moveExperience(index: number, direction: -1 | 1) {
+    const experience = moveInList(form.experience, index, direction);
+    if (experience) setForm({ ...form, experience });
+  }
+
+  function moveEducation(index: number, direction: -1 | 1) {
+    const education = moveInList(form.education, index, direction);
+    if (education) setForm({ ...form, education });
+  }
+
+  function moveProject(index: number, direction: -1 | 1) {
+    const projects = moveInList(form.projects, index, direction);
+    if (projects) setForm({ ...form, projects });
   }
 
   function updateExperience(index: number, patch: Partial<ExperienceItem>) {
     const experience = [...form.experience];
     experience[index] = { ...experience[index], ...patch };
     setForm({ ...form, experience });
+  }
+
+  function updateEducation(index: number, patch: Partial<EducationItem>) {
+    const education = [...form.education];
+    education[index] = { ...education[index], ...patch };
+    setForm({ ...form, education });
+  }
+
+  function updateProject(index: number, patch: Partial<ProjectFormItem>) {
+    const projects = [...form.projects];
+    projects[index] = { ...projects[index], ...patch };
+    setForm({ ...form, projects });
   }
 
   useEffect(() => {
@@ -239,17 +285,16 @@ export function BuilderPage() {
         .slice(0, 20);
       const projects = form.projects
         .filter((p) => p.title.trim())
-        .map((p) => ({
-          title: p.title,
-          description: p.description,
-          link: p.link,
-          imageUrl: p.imageUrl,
-          tech: p.techText
+        .map(({ clientId: _clientId, techText, ...rest }) => ({
+          ...rest,
+          tech: techText
             .split(',')
             .map((t) => t.trim())
             .filter(Boolean),
         }));
-      const education = form.education.filter((e) => e.school.trim() || e.degree.trim());
+      const education = form.education
+        .filter((e) => e.school.trim() || e.degree.trim())
+        .map(({ clientId: _clientId, ...rest }) => rest);
       const experience = form.experience
         .filter((e) => e.company.trim() || e.role.trim())
         .map(({ clientId: _clientId, ...rest }) => rest);
@@ -424,7 +469,7 @@ export function BuilderPage() {
                         ...form,
                         experience: [...form.experience, next],
                       });
-                      setCollapsedRoles((prev) => {
+                      setCollapsedItems((prev) => {
                         const copy = new Set(prev);
                         copy.delete(next.clientId);
                         return copy;
@@ -449,7 +494,7 @@ export function BuilderPage() {
                 </label>
                 <div className="project-list">
                   {form.experience.map((item, index) => {
-                    const collapsed = collapsedRoles.has(item.clientId);
+                    const collapsed = collapsedItems.has(item.clientId);
                     const title =
                       [item.role, item.company].filter(Boolean).join(' · ') || `Role ${index + 1}`;
                     const dates = [item.startDate, item.endDate].filter(Boolean).join(' — ');
@@ -463,7 +508,7 @@ export function BuilderPage() {
                             type="button"
                             className="role-collapse-toggle"
                             aria-expanded={!collapsed}
-                            onClick={() => toggleRoleCollapsed(item.clientId)}
+                            onClick={() => toggleCollapsed(item.clientId)}
                           >
                             <span className="role-collapse-chevron" aria-hidden="true">
                               {collapsed ? '▸' : '▾'}
@@ -507,7 +552,7 @@ export function BuilderPage() {
                                     ...form,
                                     experience: form.experience.filter((_, i) => i !== index),
                                   });
-                                  setCollapsedRoles((prev) => {
+                                  setCollapsedItems((prev) => {
                                     const next = new Set(prev);
                                     next.delete(item.clientId);
                                     return next;
@@ -594,18 +639,27 @@ export function BuilderPage() {
                 <div className="section-head-row">
                   <div>
                     <h2>Education</h2>
-                    <p className="section-desc">Add up to 8 qualifications with school, degree and dates.</p>
+                    <p className="section-desc">
+                      Add up to 8 qualifications. Collapse entries to keep the list tidy, and reorder
+                      with the arrows.
+                    </p>
                   </div>
                   <button
                     type="button"
                     className="btn btn-secondary btn-sm"
                     disabled={form.education.length >= 8}
-                    onClick={() =>
+                    onClick={() => {
+                      const next = emptyEducation();
                       setForm({
                         ...form,
-                        education: [...form.education, { ...emptyEducation }],
-                      })
-                    }
+                        education: [...form.education, next],
+                      });
+                      setCollapsedItems((prev) => {
+                        const copy = new Set(prev);
+                        copy.delete(next.clientId);
+                        return copy;
+                      });
+                    }}
                   >
                     + Add qualification
                   </button>
@@ -624,102 +678,134 @@ export function BuilderPage() {
                   />
                 </label>
                 <div className="project-list">
-                  {form.education.map((item, index) => (
-                    <article className="project-card" key={index}>
-                      <div className="project-card-head">
-                        <h3>Qualification {index + 1}</h3>
-                        {form.education.length > 1 && (
+                  {form.education.map((item, index) => {
+                    const collapsed = collapsedItems.has(item.clientId);
+                    const title =
+                      [item.degree, item.school].filter(Boolean).join(' · ') ||
+                      `Qualification ${index + 1}`;
+                    const dates = [item.startDate, item.endDate].filter(Boolean).join(' — ');
+                    return (
+                      <article
+                        className={`project-card${collapsed ? ' is-collapsed' : ''}`}
+                        key={item.clientId}
+                      >
+                        <div className="project-card-head">
                           <button
                             type="button"
-                            className="btn-text danger"
-                            onClick={() =>
-                              setForm({
-                                ...form,
-                                education: form.education.filter((_, i) => i !== index),
-                              })
-                            }
+                            className="role-collapse-toggle"
+                            aria-expanded={!collapsed}
+                            onClick={() => toggleCollapsed(item.clientId)}
                           >
-                            Remove
+                            <span className="role-collapse-chevron" aria-hidden="true">
+                              {collapsed ? '▸' : '▾'}
+                            </span>
+                            <span className="role-collapse-copy">
+                              <span className="role-collapse-title">{title}</span>
+                              {collapsed && dates ? (
+                                <span className="role-collapse-meta">{dates}</span>
+                              ) : (
+                                <span className="role-collapse-meta">Qualification {index + 1}</span>
+                              )}
+                            </span>
                           </button>
+                          <div className="role-card-actions">
+                            <button
+                              type="button"
+                              className="btn-icon"
+                              title="Move up"
+                              aria-label="Move qualification up"
+                              disabled={index === 0}
+                              onClick={() => moveEducation(index, -1)}
+                            >
+                              ↑
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-icon"
+                              title="Move down"
+                              aria-label="Move qualification down"
+                              disabled={index === form.education.length - 1}
+                              onClick={() => moveEducation(index, 1)}
+                            >
+                              ↓
+                            </button>
+                            {form.education.length > 1 && (
+                              <button
+                                type="button"
+                                className="btn-text danger"
+                                onClick={() => {
+                                  setForm({
+                                    ...form,
+                                    education: form.education.filter((_, i) => i !== index),
+                                  });
+                                  setCollapsedItems((prev) => {
+                                    const next = new Set(prev);
+                                    next.delete(item.clientId);
+                                    return next;
+                                  });
+                                }}
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        {!collapsed && (
+                          <div className="form-grid">
+                            <label>
+                              School / university
+                              <input
+                                value={item.school}
+                                onChange={(e) => updateEducation(index, { school: e.target.value })}
+                                placeholder="University of Colombo"
+                              />
+                            </label>
+                            <label>
+                              Degree / qualification
+                              <input
+                                value={item.degree}
+                                onChange={(e) => updateEducation(index, { degree: e.target.value })}
+                                placeholder="BSc Computer Science"
+                              />
+                            </label>
+                            <label>
+                              Field of study
+                              <input
+                                value={item.field}
+                                onChange={(e) => updateEducation(index, { field: e.target.value })}
+                                placeholder="Software Engineering"
+                              />
+                            </label>
+                            <label>
+                              Start
+                              <input
+                                value={item.startDate}
+                                onChange={(e) => updateEducation(index, { startDate: e.target.value })}
+                                placeholder="2018"
+                              />
+                            </label>
+                            <label>
+                              End
+                              <input
+                                value={item.endDate}
+                                onChange={(e) => updateEducation(index, { endDate: e.target.value })}
+                                placeholder="2022"
+                              />
+                            </label>
+                            <label className="span-2">
+                              Description
+                              <MarkdownRichEditor
+                                value={item.description}
+                                onChange={(description) => updateEducation(index, { description })}
+                                placeholder="Highlights, GPA, activities…"
+                                minHeight={100}
+                              />
+                            </label>
+                          </div>
                         )}
-                      </div>
-                      <div className="form-grid">
-                        <label>
-                          School / university
-                          <input
-                            value={item.school}
-                            onChange={(e) => {
-                              const education = [...form.education];
-                              education[index] = { ...item, school: e.target.value };
-                              setForm({ ...form, education });
-                            }}
-                            placeholder="University of Colombo"
-                          />
-                        </label>
-                        <label>
-                          Degree / qualification
-                          <input
-                            value={item.degree}
-                            onChange={(e) => {
-                              const education = [...form.education];
-                              education[index] = { ...item, degree: e.target.value };
-                              setForm({ ...form, education });
-                            }}
-                            placeholder="BSc Computer Science"
-                          />
-                        </label>
-                        <label>
-                          Field of study
-                          <input
-                            value={item.field}
-                            onChange={(e) => {
-                              const education = [...form.education];
-                              education[index] = { ...item, field: e.target.value };
-                              setForm({ ...form, education });
-                            }}
-                            placeholder="Software Engineering"
-                          />
-                        </label>
-                        <label>
-                          Start
-                          <input
-                            value={item.startDate}
-                            onChange={(e) => {
-                              const education = [...form.education];
-                              education[index] = { ...item, startDate: e.target.value };
-                              setForm({ ...form, education });
-                            }}
-                            placeholder="2018"
-                          />
-                        </label>
-                        <label>
-                          End
-                          <input
-                            value={item.endDate}
-                            onChange={(e) => {
-                              const education = [...form.education];
-                              education[index] = { ...item, endDate: e.target.value };
-                              setForm({ ...form, education });
-                            }}
-                            placeholder="2022"
-                          />
-                        </label>
-                        <label className="span-2">
-                          Description
-                          <MarkdownRichEditor
-                            value={item.description}
-                            onChange={(description) => {
-                              const education = [...form.education];
-                              education[index] = { ...item, description };
-                              setForm({ ...form, education });
-                            }}
-                            placeholder="Highlights, GPA, activities…"
-                            minHeight={100}
-                          />
-                        </label>
-                      </div>
-                    </article>
-                  ))}
+                      </article>
+                    );
+                  })}
                 </div>
                 <TabSaveBar label="Education" />
               </section>
@@ -770,21 +856,27 @@ export function BuilderPage() {
                 <div className="section-head-row">
                   <div>
                     <h2>Projects</h2>
-                    <p className="section-desc">Showcase up to 8 projects with title, description and link.</p>
+                    <p className="section-desc">
+                      Showcase up to 8 projects. Collapse cards to keep the list tidy, and reorder
+                      with the arrows.
+                    </p>
                   </div>
                   <button
                     type="button"
                     className="btn btn-secondary btn-sm"
                     disabled={form.projects.length >= 8}
-                    onClick={() =>
+                    onClick={() => {
+                      const next = emptyProject();
                       setForm({
                         ...form,
-                        projects: [
-                          ...form.projects,
-                          { title: '', description: '', techText: '', link: '', imageUrl: '' },
-                        ],
-                      })
-                    }
+                        projects: [...form.projects, next],
+                      });
+                      setCollapsedItems((prev) => {
+                        const copy = new Set(prev);
+                        copy.delete(next.clientId);
+                        return copy;
+                      });
+                    }}
                   >
                     + Add project
                   </button>
@@ -804,88 +896,125 @@ export function BuilderPage() {
                 </label>
 
                 <div className="project-list">
-                  {form.projects.map((project, index) => (
-                    <article className="project-card" key={index}>
-                      <div className="project-card-head">
-                        <h3>Project {index + 1}</h3>
-                        {form.projects.length > 1 && (
+                  {form.projects.map((project, index) => {
+                    const collapsed = collapsedItems.has(project.clientId);
+                    const title = project.title.trim() || `Project ${index + 1}`;
+                    const meta = project.techText
+                      .split(',')
+                      .map((t) => t.trim())
+                      .filter(Boolean)
+                      .slice(0, 3)
+                      .join(' · ');
+                    return (
+                      <article
+                        className={`project-card${collapsed ? ' is-collapsed' : ''}`}
+                        key={project.clientId}
+                      >
+                        <div className="project-card-head">
                           <button
                             type="button"
-                            className="btn-text danger"
-                            onClick={() =>
-                              setForm({
-                                ...form,
-                                projects: form.projects.filter((_, i) => i !== index),
-                              })
-                            }
+                            className="role-collapse-toggle"
+                            aria-expanded={!collapsed}
+                            onClick={() => toggleCollapsed(project.clientId)}
                           >
-                            Remove
+                            <span className="role-collapse-chevron" aria-hidden="true">
+                              {collapsed ? '▸' : '▾'}
+                            </span>
+                            <span className="role-collapse-copy">
+                              <span className="role-collapse-title">{title}</span>
+                              <span className="role-collapse-meta">
+                                {collapsed && meta ? meta : `Project ${index + 1}`}
+                              </span>
+                            </span>
                           </button>
+                          <div className="role-card-actions">
+                            <button
+                              type="button"
+                              className="btn-icon"
+                              title="Move up"
+                              aria-label="Move project up"
+                              disabled={index === 0}
+                              onClick={() => moveProject(index, -1)}
+                            >
+                              ↑
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-icon"
+                              title="Move down"
+                              aria-label="Move project down"
+                              disabled={index === form.projects.length - 1}
+                              onClick={() => moveProject(index, 1)}
+                            >
+                              ↓
+                            </button>
+                            {form.projects.length > 1 && (
+                              <button
+                                type="button"
+                                className="btn-text danger"
+                                onClick={() => {
+                                  setForm({
+                                    ...form,
+                                    projects: form.projects.filter((_, i) => i !== index),
+                                  });
+                                  setCollapsedItems((prev) => {
+                                    const next = new Set(prev);
+                                    next.delete(project.clientId);
+                                    return next;
+                                  });
+                                }}
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        {!collapsed && (
+                          <div className="form-grid">
+                            <label className="span-2">
+                              Title
+                              <input
+                                value={project.title}
+                                onChange={(e) => updateProject(index, { title: e.target.value })}
+                                placeholder="ERP System"
+                              />
+                            </label>
+                            <label className="span-2">
+                              Description
+                              <MarkdownRichEditor
+                                value={project.description}
+                                onChange={(description) => updateProject(index, { description })}
+                                placeholder="What did you build?"
+                                minHeight={120}
+                              />
+                            </label>
+                            <label>
+                              Tech (comma-separated)
+                              <input
+                                value={project.techText}
+                                onChange={(e) => updateProject(index, { techText: e.target.value })}
+                                placeholder="React, Node"
+                              />
+                            </label>
+                            <label>
+                              Link
+                              <input
+                                value={project.link || ''}
+                                onChange={(e) => updateProject(index, { link: e.target.value })}
+                                placeholder="https://..."
+                              />
+                            </label>
+                            <ImageUpload
+                              label="Project image"
+                              purpose="project"
+                              value={project.imageUrl || ''}
+                              onChange={(imageUrl) => updateProject(index, { imageUrl })}
+                            />
+                          </div>
                         )}
-                      </div>
-                      <div className="form-grid">
-                        <label className="span-2">
-                          Title
-                          <input
-                            value={project.title}
-                            onChange={(e) => {
-                              const projects = [...form.projects];
-                              projects[index] = { ...project, title: e.target.value };
-                              setForm({ ...form, projects });
-                            }}
-                            placeholder="ERP System"
-                          />
-                        </label>
-                        <label className="span-2">
-                          Description
-                          <MarkdownRichEditor
-                            value={project.description}
-                            onChange={(description) => {
-                              const projects = [...form.projects];
-                              projects[index] = { ...project, description };
-                              setForm({ ...form, projects });
-                            }}
-                            placeholder="What did you build?"
-                            minHeight={120}
-                          />
-                        </label>
-                        <label>
-                          Tech (comma-separated)
-                          <input
-                            value={project.techText}
-                            onChange={(e) => {
-                              const projects = [...form.projects];
-                              projects[index] = { ...project, techText: e.target.value };
-                              setForm({ ...form, projects });
-                            }}
-                            placeholder="React, Node"
-                          />
-                        </label>
-                        <label>
-                          Link
-                          <input
-                            value={project.link || ''}
-                            onChange={(e) => {
-                              const projects = [...form.projects];
-                              projects[index] = { ...project, link: e.target.value };
-                              setForm({ ...form, projects });
-                            }}
-                            placeholder="https://..."
-                          />
-                        </label>
-                        <ImageUpload
-                          label="Project image"
-                          purpose="project"
-                          value={project.imageUrl || ''}
-                          onChange={(imageUrl) => {
-                            const projects = [...form.projects];
-                            projects[index] = { ...project, imageUrl };
-                            setForm({ ...form, projects });
-                          }}
-                        />
-                      </div>
-                    </article>
-                  ))}
+                      </article>
+                    );
+                  })}
                 </div>
                 <TabSaveBar label="Projects" />
               </section>

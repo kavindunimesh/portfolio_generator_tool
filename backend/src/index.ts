@@ -14,10 +14,25 @@ fs.mkdirSync(`${env.storagePath}/tmp`, { recursive: true });
 
 const app = express();
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+
+const corsOrigins = env.corsOrigin
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean);
+const allowAllOrigins = corsOrigins.includes('*');
+
 app.use(
   cors({
-    origin: env.corsOrigin,
-    credentials: true,
+    origin: allowAllOrigins
+      ? true
+      : (origin, callback) => {
+          if (!origin || corsOrigins.includes(origin)) {
+            callback(null, true);
+            return;
+          }
+          callback(new Error(`CORS blocked for origin: ${origin}`));
+        },
+    credentials: !allowAllOrigins,
   })
 );
 app.use(express.json({ limit: '1mb' }));
@@ -30,9 +45,13 @@ app.use('/api/uploads', uploadRoutes);
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err);
+  const message = err instanceof Error ? err.message : 'Internal server error';
+  if (message.startsWith('CORS blocked')) {
+    return res.status(403).json({ error: message });
+  }
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(env.port, () => {
-  console.log(`API listening on http://localhost:${env.port}`);
+app.listen(env.port, env.host, () => {
+  console.log(`API listening on http://${env.host}:${env.port}`);
 });
