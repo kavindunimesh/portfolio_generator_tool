@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { api } from '../api';
+import { MAX_SOURCE_BYTES, compressImageForUpload } from '../lib/compressImage';
 import { useToast } from '../toast';
 
 type ImageUploadProps = {
@@ -46,17 +47,18 @@ export function ImageUpload({
       return;
     }
 
-    if (file.size > 8 * 1024 * 1024) {
+    if (file.size > MAX_SOURCE_BYTES) {
       error('File too large', 'Images must be 8MB or smaller before upload.');
       return;
     }
 
     setUploading(true);
     try {
-      const result = await api.uploadImage(file, purpose, value || undefined);
+      const compressed = await compressImageForUpload(file, purpose);
+      const result = await api.uploadImage(compressed, purpose, value || undefined);
       onChange(result.url);
       setQuota({ usedBytes: result.usedBytes, maxBytes: result.maxBytes });
-      success('Image uploaded', 'Compressed and saved to your storage.');
+      success('Image uploaded', 'Compressed in browser and saved to your storage.');
     } catch (err) {
       error('Upload failed', err instanceof Error ? err.message : 'Could not upload image');
     } finally {
@@ -105,7 +107,15 @@ export function ImageUpload({
             disabled={uploading}
             onClick={() => inputRef.current?.click()}
           >
-            {uploading ? 'Uploading…' : value ? (compact ? 'Replace' : 'Replace image') : compact ? 'Upload logo' : 'Upload image'}
+            {uploading
+              ? 'Compressing…'
+              : value
+                ? compact
+                  ? 'Replace'
+                  : 'Replace image'
+                : compact
+                  ? 'Upload logo'
+                  : 'Upload image'}
           </button>
           {value && (
             <button
@@ -130,7 +140,8 @@ export function ImageUpload({
         />
       </label>
       <p className="image-upload-hint">
-        Images are compressed to WebP automatically. Max 10MB total storage per account.
+        Images are resized and compressed in your browser before upload. Max 10MB total storage per
+        account.
       </p>
     </div>
   );

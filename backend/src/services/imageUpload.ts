@@ -3,31 +3,12 @@ import { query } from '../db';
 import { deleteFromR2, uploadToR2 } from './r2';
 
 export const MAX_USER_STORAGE_BYTES = 10 * 1024 * 1024;
-export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+/** Client compresses first; this is a safety cap against oversized uploads. */
+export const MAX_UPLOAD_BYTES = 1 * 1024 * 1024;
 
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
 type UploadPurpose = 'avatar' | 'project' | 'logo' | 'favicon';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SharpFn = any;
-
-let sharpLoader: Promise<SharpFn> | null = null;
-
-async function getSharp(): Promise<SharpFn> {
-  if (!sharpLoader) {
-    sharpLoader = import('sharp')
-      .then((mod: { default?: SharpFn } & SharpFn) => mod.default ?? mod)
-      .catch((err: unknown) => {
-        sharpLoader = null;
-        const detail = err instanceof Error ? err.message : String(err);
-        throw new Error(
-          `Image processing is unavailable on this server (sharp). ${detail}`.slice(0, 500)
-        );
-      });
-  }
-  return sharpLoader;
-}
 
 type UserUploadRow = {
   id: string;
@@ -37,6 +18,21 @@ type UserUploadRow = {
 
 export function isAllowedImageMime(mime: string): boolean {
   return ALLOWED_MIME.has(mime);
+}
+
+function extensionForMime(mime: string): string {
+  switch (mime) {
+    case 'image/png':
+      return '.png';
+    case 'image/jpeg':
+      return '.jpg';
+    case 'image/gif':
+      return '.gif';
+    case 'image/webp':
+      return '.webp';
+    default:
+      throw new Error('Only JPEG, PNG, WebP, and GIF images are allowed');
+  }
 }
 
 export async function getUserStorageUsage(userId: string): Promise<number> {
@@ -78,79 +74,6 @@ export async function deleteUserUpload(userId: string, publicUrl: string): Promi
   return existing.size_bytes;
 }
 
-export async function compressImage(
-  buffer: Buffer,
-  purpose: UploadPurpose
-): Promise<{ buffer: Buffer; mimeType: string; extension: string }> {
-  const sharp = await getSharp();
-
-  if (purpose === 'favicon') {
-    let output = await sharp(buffer, { failOn: 'none' })
-      .rotate()
-      .resize({ width: 64, height: 64, fit: 'cover' })
-      .png({ compressionLevel: 9 })
-      .toBuffer();
-
-    if (output.length > 24_000) {
-      output = await sharp(buffer, { failOn: 'none' })
-        .rotate()
-        .resize({ width: 48, height: 48, fit: 'cover' })
-        .png({ compressionLevel: 9 })
-        .toBuffer();
-    }
-
-    return { buffer: output, mimeType: 'image/png', extension: '.png' };
-  }
-
-  const image = sharp(buffer, { failOn: 'none' }).rotate();
-  const metadata = await image.metadata();
-
-  const resizeOptions =
-    purpose === 'avatar'
-      ? { width: 512, height: 512, fit: 'cover' as const, withoutEnlargement: true }
-      : purpose === 'logo'
-        ? { width: 192, height: 192, fit: 'inside' as const, withoutEnlargement: true }
-        : { width: 1280, fit: 'inside' as const, withoutEnlargement: true };
-
-  const quality = purpose === 'avatar' ? 80 : purpose === 'logo' ? 85 : 82;
-
-  let output = await sharp(buffer)
-    .rotate()
-    .resize(resizeOptions)
-    .webp({ quality, effort: 5, smartSubsample: true })
-    .toBuffer();
-
-  if (output.length > 350_000 && purpose === 'project') {
-    output = await sharp(buffer)
-      .rotate()
-      .resize({ width: 960, fit: 'inside', withoutEnlargement: true })
-      .webp({ quality: 72, effort: 5, smartSubsample: true })
-      .toBuffer();
-  }
-
-  if (output.length > 120_000 && purpose === 'avatar') {
-    output = await sharp(buffer)
-      .rotate()
-      .resize({ width: 384, height: 384, fit: 'cover', withoutEnlargement: true })
-      .webp({ quality: 75, effort: 5, smartSubsample: true })
-      .toBuffer();
-  }
-
-  if (output.length > 40_000 && purpose === 'logo') {
-    output = await sharp(buffer)
-      .rotate()
-      .resize({ width: 128, height: 128, fit: 'inside', withoutEnlargement: true })
-      .webp({ quality: 78, effort: 5, smartSubsample: true })
-      .toBuffer();
-  }
-
-  if (!metadata.width && output.length === 0) {
-    throw new Error('Invalid image file');
-  }
-
-  return { buffer: output, mimeType: 'image/webp', extension: '.webp' };
-}
-
 export async function uploadUserImage(params: {
   userId: string;
   fileBuffer: Buffer;
@@ -165,7 +88,11 @@ export async function uploadUserImage(params: {
   }
 
   if (fileBuffer.length > MAX_UPLOAD_BYTES) {
-    throw new Error('Image must be 8MB or smaller before upload');
+    throw new Error('Image must be 1MB or smaller after compression');
+  }
+
+  if (fileBuffer.length === 0) {
+    throw new Error('Invalid image file');
   }
 
   let freedBytes = 0;
@@ -189,17 +116,17 @@ export async function uploadUserImage(params: {
     }
   }
 
-  const compressed = await compressImage(fileBuffer, purpose);
   const usedBefore = await getUserStorageUsage(userId);
-  const usedAfter = usedBefore - freedBytes + compressed.buffer.length;
+  const usedAfter = usedBefore - freedBytes + fileBuffer.length;
 
   if (usedAfter > MAX_USER_STORAGE_BYTES) {
     throw new Error('Storage limit reached (10MB per account). Remove an image or replace an existing one.');
   }
 
-  const fileName = `${uuidv4()}${compressed.extension}`;
+  const extension = extensionForMime(mimeType);
+  const fileName = `${uuidv4()}${extension}`;
   const objectKey = `portfolio/${userId}/${fileName}`;
-  const publicUrl = await uploadToR2(objectKey, compressed.buffer, compressed.mimeType);
+  const publicUrl = await uploadToR2(objectKey, fileBuffer, mimeType);
   const uploadId = uuidv4();
 
   await query(
@@ -210,15 +137,15 @@ export async function uploadUserImage(params: {
       userId,
       objectKey,
       publicUrl,
-      sizeBytes: compressed.buffer.length,
-      mimeType: compressed.mimeType,
+      sizeBytes: fileBuffer.length,
+      mimeType,
       purpose,
     }
   );
 
   return {
     url: publicUrl,
-    sizeBytes: compressed.buffer.length,
+    sizeBytes: fileBuffer.length,
     usedBytes: usedAfter,
     maxBytes: MAX_USER_STORAGE_BYTES,
   };

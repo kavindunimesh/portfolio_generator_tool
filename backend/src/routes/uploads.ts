@@ -52,7 +52,7 @@ router.post(
     upload.single('file')(req, res, (err) => {
       if (err instanceof multer.MulterError) {
         if (err.code === 'LIMIT_FILE_SIZE') {
-          return res.status(400).json({ error: 'Image must be 8MB or smaller' });
+          return res.status(400).json({ error: 'Image must be 1MB or smaller after compression' });
         }
         return res.status(400).json({ error: err.message });
       }
