@@ -27,7 +27,12 @@ router.post(
   asyncHandler(async (req, res) => {
     const parsed = registerSchema.safeParse(req.body);
     if (!parsed.success) {
-      return res.status(400).json({ error: parsed.error.flatten() });
+      const flat = parsed.error.flatten();
+      const first =
+        flat.formErrors[0] ||
+        Object.values(flat.fieldErrors).flat().find((m) => Boolean(m)) ||
+        'Invalid input';
+      return res.status(400).json({ error: first });
     }
     const { username, password } = parsed.data;
     const existing = await query<{ id: string }[]>(
@@ -63,7 +68,12 @@ router.post(
   asyncHandler(async (req, res) => {
     const parsed = loginSchema.safeParse(req.body);
     if (!parsed.success) {
-      return res.status(400).json({ error: parsed.error.flatten() });
+      const flat = parsed.error.flatten();
+      const first =
+        flat.formErrors[0] ||
+        Object.values(flat.fieldErrors).flat().find((m) => Boolean(m)) ||
+        'Invalid input';
+      return res.status(400).json({ error: first });
     }
     const { username, password } = parsed.data;
     const rows = await query<{ id: string; username: string; password_hash: string }[]>(

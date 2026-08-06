@@ -37,9 +37,6 @@ export function AppShell() {
   const navLinks = token ? (
     <>
       <div className="nav-links">
-        <NavLink to="/dashboard" className={navClass} onClick={() => setMenuOpen(false)}>
-          Dashboard
-        </NavLink>
         <NavLink to="/builder" className={navClass} onClick={() => setMenuOpen(false)}>
           Builder
         </NavLink>

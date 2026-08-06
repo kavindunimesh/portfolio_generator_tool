@@ -3,13 +3,20 @@ import { z } from 'zod';
 export const registerSchema = z.object({
   username: z
     .string()
-    .min(3)
-    .max(32)
+    .min(3, 'Username must be at least 3 characters')
+    .max(32, 'Username must be at most 32 characters')
     .regex(/^[a-zA-Z0-9_]+$/, 'Username may only contain letters, numbers, and underscore'),
-  password: z.string().min(8).max(128),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password is too long'),
 });
 
-export const loginSchema = registerSchema;
+/** Login only checks credentials exist — format rules belong on register. */
+export const loginSchema = z.object({
+  username: z.string().trim().min(1, 'Enter your username').max(64),
+  password: z.string().min(1, 'Enter your password').max(128),
+});
 
 const projectSchema = z.object({
   title: z.string().min(1).max(200),

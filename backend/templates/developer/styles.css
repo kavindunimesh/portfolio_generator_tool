@@ -78,7 +78,7 @@ html[data-theme="light"] .site-nav {
   background: color-mix(in srgb, #ffffff 90%, transparent);
 }
 .site-nav-inner {
-  width: min(1200px, calc(100% - 2rem));
+  width: min(1040px, calc(100% - 4rem));
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -181,9 +181,19 @@ html[data-theme="light"] .site-nav {
 .shell {
   display: grid;
   grid-template-columns: minmax(240px, 300px) 1fr;
+  width: min(1040px, 100%);
+  margin-inline: auto;
   height: calc(100vh - 3.35rem);
   height: calc(100dvh - 3.35rem);
   overflow: hidden;
+}
+
+main {
+  padding: 2rem;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .rail {
@@ -194,6 +204,7 @@ html[data-theme="light"] .site-nav {
   flex-direction: column;
   gap: 1.75rem;
   height: 100%;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   animation: slideIn 0.55s ease both;

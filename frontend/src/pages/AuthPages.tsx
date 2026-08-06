@@ -76,7 +76,7 @@ export function LoginPage() {
       const res = await api.login(username.trim(), password);
       setSession(res.token, res.user.username);
       toast.success('Welcome back', `Signed in as ${res.user.username}.`);
-      navigate('/dashboard');
+      navigate('/builder');
     } catch (err) {
       toast.error('Login failed', err instanceof Error ? err.message : 'Check your credentials.');
     } finally {
@@ -89,7 +89,7 @@ export function LoginPage() {
       <NoIndex />
       <p className="auth-kicker">Adawwa</p>
       <h1>Log in</h1>
-      <p className="muted">Welcome back — continue to your dashboard.</p>
+      <p className="muted">Welcome back — continue editing your page.</p>
       <form onSubmit={onSubmit}>
         <label>
           Username

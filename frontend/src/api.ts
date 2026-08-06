@@ -103,6 +103,48 @@ function authHeaders(json = true): HeadersInit {
   return headers;
 }
 
+function formatApiError(data: unknown, status: number): string {
+  if (!data || typeof data !== 'object') {
+    return `Request failed (${status})`;
+  }
+  const body = data as {
+    error?: unknown;
+    detail?: unknown;
+    message?: unknown;
+  };
+
+  if (typeof body.error === 'string' && body.error.trim()) {
+    return body.error;
+  }
+
+  // Zod flatten(): { formErrors: string[]; fieldErrors: Record<string, string[]> }
+  if (body.error && typeof body.error === 'object') {
+    const flat = body.error as {
+      formErrors?: unknown;
+      fieldErrors?: unknown;
+    };
+    const parts: string[] = [];
+    if (Array.isArray(flat.formErrors)) {
+      for (const msg of flat.formErrors) {
+        if (typeof msg === 'string' && msg.trim()) parts.push(msg);
+      }
+    }
+    if (flat.fieldErrors && typeof flat.fieldErrors === 'object') {
+      for (const messages of Object.values(flat.fieldErrors as Record<string, unknown>)) {
+        if (!Array.isArray(messages)) continue;
+        for (const msg of messages) {
+          if (typeof msg === 'string' && msg.trim()) parts.push(msg);
+        }
+      }
+    }
+    if (parts.length) return parts.join(' ');
+  }
+
+  if (typeof body.detail === 'string' && body.detail.trim()) return body.detail;
+  if (typeof body.message === 'string' && body.message.trim()) return body.message;
+  return `Request failed (${status})`;
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
@@ -110,12 +152,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const err = data.error;
-    const message =
-      typeof err === 'string'
-        ? err
-        : data.detail || (err ? JSON.stringify(err) : `Request failed (${res.status})`);
-    throw new Error(message);
+    throw new Error(formatApiError(data, res.status));
   }
   return data as T;
 }

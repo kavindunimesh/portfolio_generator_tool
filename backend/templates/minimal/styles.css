@@ -127,7 +127,7 @@ html[data-theme="dark"] .footer {
   color: color-mix(in srgb, var(--muted) 85%, transparent);
 }
 .page {
-  width: min(1080px, calc(100% - 2rem));
+  width: min(1040px, calc(100% - 4rem));
   margin: 0 auto;
   padding: 0 0 3rem;
   position: relative;
@@ -156,7 +156,7 @@ html[data-theme="dark"] .footer {
     0 1px 0 color-mix(in srgb, var(--accent) 12%, transparent);
 }
 .site-nav-inner {
-  width: min(1080px, calc(100% - 2rem));
+  width: min(1040px, calc(100% - 4rem));
   margin: 0 auto;
   display: flex;
   align-items: center;

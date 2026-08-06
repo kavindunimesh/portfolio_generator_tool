@@ -1,4 +1,4 @@
-/* Contact form (Adawwa plugin) */
+/* Contact form (Adawwa plugin) — uses theme CSS variables from each template */
 .pf-contact-section {
   width: 100%;
   max-width: 42rem;
@@ -20,6 +20,7 @@
   font-size: clamp(1.35rem, 3vw, 1.85rem);
   font-weight: 700;
   letter-spacing: -0.02em;
+  color: inherit;
 }
 .pf-contact-lead {
   margin: 0 0 0.75rem;
@@ -33,34 +34,60 @@
   margin-top: 0.35rem;
   padding: 1.25rem;
   border-radius: 1rem;
-  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
-  background: color-mix(in srgb, currentColor 4%, transparent);
+  border: 1px solid var(--border, color-mix(in srgb, currentColor 14%, transparent));
+  background: color-mix(in srgb, var(--panel, currentColor) 88%, transparent);
   text-align: left;
   position: relative;
+  color: var(--text, inherit);
+}
+html[data-theme="dark"] .pf-contact-form {
+  background: color-mix(in srgb, #fff 5%, var(--panel, transparent));
+  border-color: color-mix(in srgb, #fff 16%, var(--border, transparent));
+  color-scheme: dark;
+}
+html[data-theme="light"] .pf-contact-form {
+  color-scheme: light;
 }
 .pf-contact-grid { display: grid; gap: 0.85rem; grid-template-columns: 1fr; }
 @media (min-width: 560px) {
   .pf-contact-grid { grid-template-columns: 1fr 1fr; }
 }
-.pf-contact-form label { display: grid; gap: 0.35rem; font-size: 0.82rem; font-weight: 600; }
+.pf-contact-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: inherit;
+}
 .pf-contact-optional { font-weight: 500; opacity: 0.65; }
 .pf-contact-form input,
 .pf-contact-form textarea {
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border: 1px solid var(--border, color-mix(in srgb, currentColor 18%, transparent));
   border-radius: 0.65rem;
   padding: 0.7rem 0.85rem;
   font: inherit;
-  color: inherit;
-  background: #fff;
+  font-size: 0.95rem;
+  color: var(--text, inherit);
+  background: var(--card, #fff);
+}
+.pf-contact-form input::placeholder,
+.pf-contact-form textarea::placeholder {
+  color: var(--muted, currentColor);
+  opacity: 0.7;
+}
+html[data-theme="dark"] .pf-contact-form input,
+html[data-theme="dark"] .pf-contact-form textarea {
+  background: color-mix(in srgb, var(--card, #000) 85%, #000);
+  border-color: color-mix(in srgb, #fff 18%, var(--border, transparent));
 }
 .pf-contact-form label.has-error input,
 .pf-contact-form label.has-error textarea {
   border-color: #dc2626;
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
 }
-.pf-contact-field-error { color: #dc2626; font-size: 0.78rem; font-weight: 600; }
+.pf-contact-field-error { color: #dc2626; font-size: 0.78rem; font-weight: 600; line-height: 1.35; }
 .pf-contact-hint { font-size: 0.75rem; font-weight: 500; opacity: 0.6; }
 .pf-contact-form button[type="submit"] {
   justify-self: start;
@@ -91,4 +118,13 @@
   width: 1px !important;
   height: 1px !important;
   overflow: hidden !important;
+}
+
+/* Theme layout tweaks (ZIP builds — no .pf wrapper) */
+.pf-developer .pf-contact-section {
+  padding-inline: 1.25rem;
+  max-width: none;
+}
+.pf-minimal .pf-contact-section {
+  text-align: left;
 }

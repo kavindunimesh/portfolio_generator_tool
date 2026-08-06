@@ -895,7 +895,7 @@
   color: color-mix(in srgb, var(--muted) 85%, transparent);
 }
 .pf-minimal .page {
-  width: min(1080px, calc(100% - 2rem));
+  width: min(1040px, calc(100% - 4rem));
   margin: 0 auto;
   padding: 0 0 3rem;
   position: relative;
@@ -923,7 +923,7 @@
     0 1px 0 color-mix(in srgb, var(--accent) 12%, transparent);
 }
 .pf-minimal .site-nav-inner {
-  width: min(1080px, calc(100% - 2rem));
+  width: min(1040px, calc(100% - 4rem));
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -1942,7 +1942,7 @@
   background: color-mix(in srgb, #ffffff 90%, transparent);
 }
 .pf-developer .site-nav-inner {
-  width: min(1200px, calc(100% - 2rem));
+  width: min(1040px, calc(100% - 4rem));
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -2044,6 +2044,8 @@
 .pf-developer .shell {
   display: grid;
   grid-template-columns: minmax(240px, 300px) 1fr;
+  width: min(1040px, 100%);
+  margin-inline: auto;
   height: calc(100vh - 3.35rem);
   height: calc(100dvh - 3.35rem);
   overflow: hidden;
@@ -2056,6 +2058,7 @@
   flex-direction: column;
   gap: 1.75rem;
   height: 100%;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -2183,6 +2186,7 @@
 .pf-developer main {
   padding: 2rem;
   height: 100%;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -2643,7 +2647,7 @@
   border-bottom: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
 }
 .pf-aurora .site-nav-inner {
-  width: min(1100px, calc(100% - 2rem));
+  width: min(1040px, calc(100% - 4rem));
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -2821,7 +2825,7 @@
   filter: blur(56px);
 }
 .pf-aurora .wrap {
-  width: min(1100px, calc(100% - 2.5rem));
+  width: min(1040px, calc(100% - 4rem));
   margin: 0 auto;
   position: relative;
   z-index: 1;
@@ -3623,7 +3627,7 @@
   mix-blend-mode: soft-light;
 }
 .pf-editorial .wrap {
-  width: min(1040px, calc(100% - 2.5rem));
+  width: min(1040px, calc(100% - 4rem));
   margin: 0 auto;
   position: relative;
   z-index: 1;
@@ -3638,7 +3642,7 @@
   backdrop-filter: blur(8px);
 }
 .pf-editorial .site-nav-inner {
-  width: min(1040px, calc(100% - 2.5rem));
+  width: min(1040px, calc(100% - 4rem));
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -4145,7 +4149,7 @@
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 .pf-noir .wrap {
-  width: min(980px, calc(100% - 2.5rem));
+  width: min(1040px, calc(100% - 4rem));
   margin: 0 auto;
   position: relative;
   z-index: 1;
@@ -4159,7 +4163,7 @@
   backdrop-filter: blur(12px) saturate(1.1);
 }
 .pf-noir .site-nav-inner {
-  width: min(980px, calc(100% - 2.5rem));
+  width: min(1040px, calc(100% - 4rem));
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -4320,7 +4324,7 @@
   grid-template-columns: minmax(16rem, 1.35fr) minmax(12rem, 0.7fr);
   gap: clamp(1.25rem, 3vw, 2.75rem);
   align-items: stretch;
-  width: min(1120px, calc(100% - 2.5rem));
+  width: min(1040px, calc(100% - 4rem));
   margin: 0 auto;
   padding: clamp(1.75rem, 4vw, 3rem) 0 clamp(1.25rem, 3vw, 2rem);
 }
@@ -4506,7 +4510,7 @@
   backdrop-filter: blur(10px);
 }
 .pf-noir .hero-bar-inner {
-  width: min(1120px, calc(100% - 2.5rem));
+  width: min(1040px, calc(100% - 4rem));
   margin: 0 auto;
   display: flex;
   flex-wrap: wrap;
@@ -4963,7 +4967,7 @@
 }
 .pf-contact-section.wrap,
 .wrap.pf-contact-section {
-  max-width: min(42rem, var(--pf-wrap, 1100px));
+  max-width: min(42rem, var(--pf-wrap, 1040px));
 }
 .pf-contact-section-inner {
   display: grid;
@@ -4996,15 +5000,21 @@
   margin-top: 0.35rem;
   padding: 1.25rem;
   border-radius: 1rem;
-  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
-  background: color-mix(in srgb, currentColor 4%, transparent);
+  border: 1px solid var(--border, color-mix(in srgb, currentColor 14%, transparent));
+  background: color-mix(in srgb, var(--panel, currentColor) 88%, transparent);
   text-align: left;
   position: relative;
+  color: var(--text, inherit);
 }
 .pf.theme-dark .pf-contact-form,
 html[data-theme="dark"] .pf-contact-form {
-  background: color-mix(in srgb, #fff 5%, transparent);
-  border-color: color-mix(in srgb, #fff 16%, transparent);
+  background: color-mix(in srgb, #fff 5%, var(--panel, transparent));
+  border-color: color-mix(in srgb, #fff 16%, var(--border, transparent));
+  color-scheme: dark;
+}
+.pf.theme-light .pf-contact-form,
+html[data-theme="light"] .pf-contact-form {
+  color-scheme: light;
 }
 .pf-contact-grid {
   display: grid;
@@ -5031,20 +5041,25 @@ html[data-theme="dark"] .pf-contact-form {
 .pf-contact-form textarea {
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border: 1px solid var(--border, color-mix(in srgb, currentColor 18%, transparent));
   border-radius: 0.65rem;
   padding: 0.7rem 0.85rem;
   font: inherit;
   font-size: 0.95rem;
-  color: inherit;
-  background: color-mix(in srgb, #fff 92%, transparent);
+  color: var(--text, inherit);
+  background: var(--card, #fff);
+}
+.pf-contact-form input::placeholder,
+.pf-contact-form textarea::placeholder {
+  color: var(--muted, currentColor);
+  opacity: 0.7;
 }
 .pf.theme-dark .pf-contact-form input,
 .pf.theme-dark .pf-contact-form textarea,
 html[data-theme="dark"] .pf-contact-form input,
 html[data-theme="dark"] .pf-contact-form textarea {
-  background: color-mix(in srgb, #000 40%, transparent);
-  border-color: color-mix(in srgb, #fff 18%, transparent);
+  background: color-mix(in srgb, var(--card, #000) 85%, #000);
+  border-color: color-mix(in srgb, #fff 18%, var(--border, transparent));
 }
 .pf-contact-form label.has-error input,
 .pf-contact-form label.has-error textarea {

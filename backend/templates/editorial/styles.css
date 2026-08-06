@@ -64,7 +64,7 @@ html[data-theme="dark"] .paper-grain {
 }
 
 .wrap {
-  width: min(1040px, calc(100% - 2.5rem));
+  width: min(1040px, calc(100% - 4rem));
   margin: 0 auto;
   position: relative;
   z-index: 1;
@@ -80,7 +80,7 @@ html[data-theme="dark"] .paper-grain {
   backdrop-filter: blur(8px);
 }
 .site-nav-inner {
-  width: min(1040px, calc(100% - 2.5rem));
+  width: min(1040px, calc(100% - 4rem));
   margin: 0 auto;
   display: flex;
   align-items: center;

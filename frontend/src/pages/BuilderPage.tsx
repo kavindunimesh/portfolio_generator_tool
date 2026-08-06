@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { api, type Portfolio } from '../api';
 import { useAuth } from '../auth';
 import { NoIndex } from '../components/NoIndex';
@@ -45,7 +45,8 @@ type TabId =
   | 'socials'
   | 'seo'
   | 'design'
-  | 'plugins';
+  | 'plugins'
+  | 'share';
 
 const TABS: { id: TabId; label: string; desc: string }[] = [
   { id: 'profile', label: 'Profile', desc: 'Name, bio & contact' },
@@ -57,6 +58,7 @@ const TABS: { id: TabId; label: string; desc: string }[] = [
   { id: 'seo', label: 'SEO', desc: 'Meta & sharing' },
   { id: 'design', label: 'Design', desc: 'Route, template & theme' },
   { id: 'plugins', label: 'Plugins', desc: 'Contact form & extras' },
+  { id: 'share', label: 'Share', desc: 'Publish & download' },
 ];
 
 function TabIcon({ id }: { id: TabId }) {
@@ -145,6 +147,15 @@ function TabIcon({ id }: { id: TabId }) {
           <path d="M9 13h6M9 16h4" />
         </svg>
       );
+    case 'share':
+      return (
+        <svg {...common}>
+          <circle cx="18" cy="5" r="2.5" />
+          <circle cx="6" cy="12" r="2.5" />
+          <circle cx="18" cy="19" r="2.5" />
+          <path d="M8.4 10.8 15.6 6.2M8.4 13.2 15.6 17.8" />
+        </svg>
+      );
   }
 }
 
@@ -168,6 +179,8 @@ function isTabReady(id: TabId, form: FormState): boolean {
       return Boolean(form.userRoute.trim() && form.templateSlug);
     case 'plugins':
       return form.plugins.contactForm.enabled;
+    case 'share':
+      return Boolean(form.userRoute.trim());
   }
 }
 
@@ -305,7 +318,6 @@ function fromPortfolio(p: Portfolio): FormState {
 
 export function BuilderPage() {
   const { portfolio, refresh } = useAuth();
-  const navigate = useNavigate();
   const toast = useToast();
   const [form, setForm] = useState<FormState>(emptyForm);
   const [collapsedItems, setCollapsedItems] = useState<Set<string>>(() => new Set());
@@ -315,6 +327,8 @@ export function BuilderPage() {
   });
   const [routeHint, setRouteHint] = useState('');
   const [busy, setBusy] = useState(false);
+  const [shareBusy, setShareBusy] = useState(false);
+  const [cvBusy, setCvBusy] = useState(false);
   const tabsNavRef = useRef<HTMLElement | null>(null);
   const titleDefaults = resolveSectionTitles(form.templateSlug);
 
@@ -477,6 +491,97 @@ export function BuilderPage() {
     );
   }
 
+  async function publishPage() {
+    if (!form.userRoute.trim() && !portfolio?.userRoute) {
+      toast.warning('Link name needed', 'Set your page link name in the Design tab first.');
+      setActiveTab('design');
+      return;
+    }
+    setShareBusy(true);
+    try {
+      await api.publish();
+      await refresh();
+      toast.success('Page is live', 'Anyone with your link can open it.');
+    } catch (err) {
+      toast.error('Could not publish', err instanceof Error ? err.message : 'Try again.');
+    } finally {
+      setShareBusy(false);
+    }
+  }
+
+  async function unpublishPage() {
+    setShareBusy(true);
+    try {
+      await api.unpublish();
+      await refresh();
+      toast.warning('Page hidden', 'Your public link is no longer available.');
+    } catch (err) {
+      toast.error('Could not unpublish', err instanceof Error ? err.message : 'Try again.');
+    } finally {
+      setShareBusy(false);
+    }
+  }
+
+  async function downloadZip() {
+    setShareBusy(true);
+    try {
+      const job = await api.download();
+      const token = localStorage.getItem('token');
+      const res = await fetch(api.downloadFileUrl(job.id), {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error('Download failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = job.filename || 'portfolio.zip';
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Download started', 'You can put these files on your own website.');
+    } catch (err) {
+      toast.error('Download failed', err instanceof Error ? err.message : 'Try again.');
+    } finally {
+      setShareBusy(false);
+    }
+  }
+
+  async function downloadCv() {
+    setCvBusy(true);
+    try {
+      const { blob, filename } = await api.downloadCv();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('CV ready', 'Your PDF resume has downloaded.');
+    } catch (err) {
+      toast.error('CV download failed', err instanceof Error ? err.message : 'Try again.');
+    } finally {
+      setCvBusy(false);
+    }
+  }
+
+  function copyLiveUrl() {
+    const route = portfolio?.userRoute || form.userRoute.trim();
+    if (!route) return;
+    const url = `${window.location.origin}/portfolio/${route}`;
+    void navigator.clipboard.writeText(url).then(
+      () => toast.success('Link copied', url),
+      () => toast.error('Copy failed', 'Could not copy to clipboard.')
+    );
+  }
+
+  const hasRoute = Boolean(portfolio?.userRoute || form.userRoute.trim());
+  const isLive = Boolean(portfolio?.publicLive);
+  const liveUrl = portfolio?.userRoute
+    ? `${window.location.origin}/portfolio/${portfolio.userRoute}`
+    : form.userRoute.trim()
+      ? `${window.location.origin}/portfolio/${form.userRoute.trim()}`
+      : null;
+
   return (
     <main className="builder-page">
       <NoIndex />
@@ -487,11 +592,15 @@ export function BuilderPage() {
           <h1>Edit your portfolio</h1>
           <p className="muted">Fill each tab and save when done. Switch tabs anytime.</p>
         </div>
-        {form.userRoute && (
-          <div className="builder-preview-url">
-            <span>Live path</span>
-            <code>/portfolio/{form.userRoute}</code>
-          </div>
+        {form.userRoute && isLive && (
+          <Link
+            className="btn btn-secondary"
+            to={`/portfolio/${form.userRoute}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Open page
+          </Link>
         )}
       </header>
 
@@ -1640,12 +1749,108 @@ export function BuilderPage() {
                 </div>
 
                 <TabSaveBar label="Plugins" />
-                <p className="muted tab-dashboard-link">
-                  All set?{' '}
-                  <button type="button" className="btn-text" onClick={() => navigate('/dashboard')}>
-                    Go to dashboard →
-                  </button>
+              </section>
+            )}
+
+            {activeTab === 'share' && (
+              <section className="builder-section">
+                <h2>Share your page</h2>
+                <p className="section-desc">
+                  Make your page live, copy the link, or download a copy for yourself.
                 </p>
+
+                {!hasRoute && (
+                  <p className="error" style={{ marginBottom: '1rem' }}>
+                    First set a page link name in the{' '}
+                    <button type="button" className="btn-text" onClick={() => setActiveTab('design')}>
+                      Design
+                    </button>{' '}
+                    tab, then save.
+                  </p>
+                )}
+
+                {liveUrl && isLive && (
+                  <div className="builder-share-url">
+                    <div>
+                      <span className="live-url-label">Your live link</span>
+                      <code>{liveUrl}</code>
+                    </div>
+                    <div className="live-url-actions">
+                      <button type="button" className="btn btn-ghost btn-sm" onClick={copyLiveUrl}>
+                        Copy link
+                      </button>
+                      {portfolio?.publicUrl && (
+                        <Link className="btn btn-primary btn-sm" to={portfolio.publicUrl} target="_blank">
+                          Open page
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="builder-share-grid">
+                  <div className="builder-share-card">
+                    <h3>{isLive ? 'Your page is live' : 'Put your page online'}</h3>
+                    <p>
+                      {isLive
+                        ? 'Anyone with the link can see your page. You can hide it anytime.'
+                        : 'Publish to get a link you can share with friends, clients, or employers.'}
+                    </p>
+                    {isLive ? (
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        disabled={shareBusy || cvBusy}
+                        onClick={() => void unpublishPage()}
+                      >
+                        {shareBusy ? 'Working…' : 'Hide my page'}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        disabled={shareBusy || cvBusy || !hasRoute}
+                        onClick={() => void publishPage()}
+                      >
+                        {shareBusy ? 'Working…' : 'Publish my page'}
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="builder-share-card">
+                    <h3>Download website files</h3>
+                    <p>Get a zip of your page to put on your own website hosting, if you want.</p>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      disabled={shareBusy || cvBusy}
+                      onClick={() => void downloadZip()}
+                    >
+                      {shareBusy ? 'Preparing…' : 'Download ZIP'}
+                    </button>
+                  </div>
+
+                  <div className="builder-share-card">
+                    <h3>Download CV (PDF)</h3>
+                    <p>A resume-style PDF made from the details you filled in.</p>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      disabled={shareBusy || cvBusy || !form.personal.fullName.trim()}
+                      onClick={() => void downloadCv()}
+                    >
+                      {cvBusy ? 'Preparing…' : 'Download CV PDF'}
+                    </button>
+                  </div>
+                </div>
+
+                {portfolio?.plugins?.contactForm?.enabled &&
+                  portfolio.plugins.contactForm.mode === 'adawwa' && (
+                    <p className="muted" style={{ marginTop: '1.25rem' }}>
+                      Contact messages from your page go to{' '}
+                      <Link to="/inbox">Inbox</Link>.
+                    </p>
+                  )}
               </section>
             )}
           </div>
