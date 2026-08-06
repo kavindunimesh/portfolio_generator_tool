@@ -43,6 +43,9 @@ export function AppShell() {
         <NavLink to="/inbox" className={navClass} onClick={() => setMenuOpen(false)}>
           Inbox
         </NavLink>
+        <NavLink to="/contact" className={navClass} onClick={() => setMenuOpen(false)}>
+          Contact
+        </NavLink>
       </div>
       <div className="nav-account">
         <span className="user-pill" title={username || undefined}>
@@ -66,6 +69,9 @@ export function AppShell() {
   ) : (
     <>
       <div className="nav-links">
+        <NavLink to="/contact" className={navClass} onClick={() => setMenuOpen(false)}>
+          Contact
+        </NavLink>
         <NavLink to="/login" className={navClass} onClick={() => setMenuOpen(false)}>
           Log in
         </NavLink>
@@ -133,6 +139,8 @@ export function AppShell() {
           <a href="https://griffinzone.com" target="_blank" rel="noopener noreferrer">
             Griffinzone (PVT) Ltd
           </a>
+          {' · '}
+          <Link to="/contact">Report a problem</Link>
         </p>
       </footer>
     </div>

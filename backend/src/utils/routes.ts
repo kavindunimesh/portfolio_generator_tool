@@ -10,6 +10,8 @@ export const RESERVED_ROUTES = new Set([
   'dashboard',
   'builder',
   'portfolio',
+  'inbox',
+  'contact',
   'health',
   'templates',
   'public',

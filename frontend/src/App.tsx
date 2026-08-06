@@ -7,6 +7,7 @@ import { HomePage } from './pages/HomePage';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
 import { BuilderPage } from './pages/BuilderPage';
 import { InboxPage } from './pages/InboxPage';
+import { ContactPage } from './pages/ContactPage';
 import { PublicPortfolioPage } from './pages/PublicPortfolioPage';
 
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
               <Route index element={<HomePage />} />
               <Route path="register" element={<RegisterPage />} />
               <Route path="login" element={<LoginPage />} />
+              <Route path="contact" element={<ContactPage />} />
               <Route path="portfolio/:userRoute" element={<PublicPortfolioPage />} />
               <Route element={<RequireAuth />}>
                 <Route path="builder" element={<BuilderPage />} />
