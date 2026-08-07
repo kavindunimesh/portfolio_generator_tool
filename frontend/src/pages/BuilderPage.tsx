@@ -6,6 +6,7 @@ import { NoIndex } from '../components/NoIndex';
 import { ImageUpload } from '../components/ImageUpload';
 import { MarkdownRichEditor } from '../components/MarkdownRichEditor';
 import { createId } from '../lib/id';
+import { getAuthToken } from '../lib/authSession';
 import { useToast } from '../toast';
 import { TEMPLATES, getTemplate, resolveSectionTitles, type TemplateSlug } from '../templates/catalog';
 
@@ -526,7 +527,7 @@ export function BuilderPage() {
     setShareBusy(true);
     try {
       const job = await api.download();
-      const token = localStorage.getItem('token');
+      const token = getAuthToken();
       const res = await fetch(api.downloadFileUrl(job.id), {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
@@ -587,21 +588,23 @@ export function BuilderPage() {
       <NoIndex />
 
       <header className="builder-header">
-        <div>
+        <div className="builder-header-copy">
           <p className="builder-kicker">Portfolio builder</p>
-          <h1>Edit your portfolio</h1>
-          <p className="muted">Fill each tab and save when done. Switch tabs anytime.</p>
+          <div className="builder-header-title-row">
+            <h1>Edit your portfolio</h1>
+            {form.userRoute && isLive && (
+              <Link
+                className="btn btn-secondary btn-sm builder-open-page"
+                to={`/portfolio/${form.userRoute}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open page
+              </Link>
+            )}
+          </div>
+          <p className="muted builder-header-hint">Fill each tab and save when done.</p>
         </div>
-        {form.userRoute && isLive && (
-          <Link
-            className="btn btn-secondary"
-            to={`/portfolio/${form.userRoute}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Open page
-          </Link>
-        )}
       </header>
 
       <div className="builder-shell">

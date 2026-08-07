@@ -1,9 +1,12 @@
 :root {
   --bg: #f2f0eb;
   --ink: #141210;
+  --text: #141210;
   --muted: #5c564e;
   --card: #faf9f6;
+  --sheet: #faf9f6;
   --line: #cfc8bc;
+  --border: #cfc8bc;
   --accent: #9f1239;
   --font-display: "Libre Baskerville", Georgia, serif;
   --font-body: "Source Sans 3", system-ui, sans-serif;
@@ -12,9 +15,12 @@
 html[data-theme="dark"] {
   --bg: #12100e;
   --ink: #f3efe8;
+  --text: #f3efe8;
   --muted: #a89f93;
   --card: #1c1916;
+  --sheet: #1c1916;
   --line: #3a342c;
+  --border: #3a342c;
 }
 
 * { box-sizing: border-box; }

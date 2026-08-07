@@ -16,6 +16,7 @@ export const registerSchema = z.object({
 export const loginSchema = z.object({
   username: z.string().trim().min(1, 'Enter your username').max(64),
   password: z.string().min(1, 'Enter your password').max(128),
+  remember: z.boolean().optional().default(false),
 });
 
 const projectSchema = z.object({

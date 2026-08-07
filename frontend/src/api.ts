@@ -1,4 +1,5 @@
 import { ContactSubmitError } from './lib/contactErrors';
+import { getAuthToken } from './lib/authSession';
 
 export type Portfolio = {
   id: string;
@@ -92,7 +93,7 @@ export type Portfolio = {
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 function authHeaders(json = true): HeadersInit {
-  const token = localStorage.getItem('token');
+  const token = getAuthToken();
   const headers: HeadersInit = {};
   if (token) {
     headers.Authorization = `Bearer ${token}`;
@@ -163,10 +164,10 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ username, password }),
     }),
-  login: (username: string, password: string) =>
+  login: (username: string, password: string, remember = false) =>
     request<{ token: string; user: { id: string; username: string } }>('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, password, remember }),
     }),
   me: () =>
     request<{ user: { id: string; username: string }; portfolio: Portfolio | null }>('/api/auth/me'),
@@ -186,7 +187,7 @@ export const api = {
       method: 'POST',
     }),
   downloadCv: async () => {
-    const token = localStorage.getItem('token');
+    const token = getAuthToken();
     const res = await fetch(`${API_URL}/api/portfolio/cv`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });

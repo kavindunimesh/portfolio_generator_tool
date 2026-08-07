@@ -874,6 +874,37 @@ code {
   min-height: 2.75rem;
 }
 
+.auth-remember {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin: 0.15rem 0 0.25rem;
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.auth-remember input {
+  width: auto;
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+}
+
+.auth-remember span {
+  display: grid;
+  gap: 0.1rem;
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.auth-remember small {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
 .auth-card > .muted {
   margin: 0.35rem 0 0;
 }
@@ -953,12 +984,13 @@ code {
 }
 
 .builder-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  flex-direction: column;
+  display: block;
   margin-bottom: 1.15rem;
+  min-width: 0;
+}
+
+.builder-header-copy {
+  min-width: 0;
 }
 
 .builder-kicker {
@@ -970,13 +1002,33 @@ code {
   color: var(--accent);
 }
 
+.builder-header-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
 .builder-header h1 {
-  margin: 0 0 0.35rem;
+  margin: 0;
   font-family: "Sora", "Manrope", sans-serif;
-  font-size: clamp(1.35rem, 4vw, 1.75rem);
+  font-size: clamp(1.2rem, 5vw, 1.75rem);
   font-weight: 700;
   letter-spacing: -0.03em;
-  overflow-wrap: anywhere;
+  line-height: 1.2;
+  min-width: 0;
+  flex: 1;
+}
+
+.builder-open-page {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.builder-header-hint {
+  margin: 0.45rem 0 0;
+  font-size: 0.9rem;
 }
 
 .builder-preview-url {
@@ -1827,10 +1879,20 @@ code {
   }
 
   .builder-header {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 1.5rem;
     margin-bottom: 1.5rem;
+  }
+
+  .builder-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .builder-header-hint {
+    margin-top: 0.5rem;
+  }
+
+  .builder-open-page {
+    padding: 0.65rem 1.15rem;
+    font-size: 0.9rem;
   }
 
   .builder-preview-url {
@@ -2047,6 +2109,33 @@ code {
 
   .page-shell {
     padding: 1.25rem 0.75rem 2.5rem;
+  }
+
+  .builder-header {
+    margin-bottom: 0.95rem;
+  }
+
+  .builder-kicker {
+    margin-bottom: 0.25rem;
+    font-size: 0.7rem;
+  }
+
+  .builder-header-title-row {
+    gap: 0.55rem;
+  }
+
+  .builder-header h1 {
+    font-size: 1.2rem;
+  }
+
+  .builder-open-page {
+    padding: 0.45rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .builder-header-hint {
+    font-size: 0.82rem;
+    margin-top: 0.35rem;
   }
 }
 

@@ -3591,9 +3591,12 @@
 .pf-editorial {
   --bg: #f2f0eb;
   --ink: #141210;
+  --text: #141210;
   --muted: #5c564e;
   --card: #faf9f6;
+  --sheet: #faf9f6;
   --line: #cfc8bc;
+  --border: #cfc8bc;
   font-family: "Source Sans 3", system-ui, sans-serif;
   background:
     radial-gradient(ellipse 70% 40% at 50% -5%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 55%),
@@ -3606,9 +3609,12 @@
 .pf-editorial.theme-dark {
   --bg: #12100e;
   --ink: #f3efe8;
+  --text: #f3efe8;
   --muted: #a89f93;
   --card: #1c1916;
+  --sheet: #1c1916;
   --line: #3a342c;
+  --border: #3a342c;
   background:
     radial-gradient(ellipse 70% 40% at 50% -5%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 55%),
     var(--bg);
@@ -5000,21 +5006,25 @@
   margin-top: 0.35rem;
   padding: 1.25rem;
   border-radius: 1rem;
-  border: 1px solid var(--border, color-mix(in srgb, currentColor 14%, transparent));
-  background: color-mix(in srgb, var(--panel, currentColor) 88%, transparent);
+  border: 1px solid var(--border, var(--line, color-mix(in srgb, currentColor 14%, transparent)));
+  /* Prefer --panel; fall back to sheet/card — never currentColor (breaks light themes without --panel) */
+  background: color-mix(in srgb, var(--panel, var(--sheet, var(--card, #fff))) 94%, transparent);
   text-align: left;
   position: relative;
-  color: var(--text, inherit);
+  color: var(--text, var(--ink, #171513));
 }
 .pf.theme-dark .pf-contact-form,
 html[data-theme="dark"] .pf-contact-form {
-  background: color-mix(in srgb, #fff 5%, var(--panel, transparent));
-  border-color: color-mix(in srgb, #fff 16%, var(--border, transparent));
+  background: color-mix(in srgb, #fff 5%, var(--panel, var(--sheet, var(--card, #141416))));
+  border-color: color-mix(in srgb, #fff 16%, var(--border, var(--line, transparent)));
   color-scheme: dark;
+  color: var(--text, var(--ink, #f6f3ee));
 }
 .pf.theme-light .pf-contact-form,
 html[data-theme="light"] .pf-contact-form {
   color-scheme: light;
+  background: color-mix(in srgb, var(--sheet, var(--card, #fff)) 96%, transparent);
+  color: var(--text, var(--ink, #171513));
 }
 .pf-contact-grid {
   display: grid;
@@ -5041,12 +5051,12 @@ html[data-theme="light"] .pf-contact-form {
 .pf-contact-form textarea {
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid var(--border, color-mix(in srgb, currentColor 18%, transparent));
+  border: 1px solid var(--border, var(--line, color-mix(in srgb, currentColor 18%, transparent)));
   border-radius: 0.65rem;
   padding: 0.7rem 0.85rem;
   font: inherit;
   font-size: 0.95rem;
-  color: var(--text, inherit);
+  color: var(--text, var(--ink, inherit));
   background: var(--card, #fff);
 }
 .pf-contact-form input::placeholder,

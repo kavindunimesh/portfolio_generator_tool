@@ -75,7 +75,7 @@ router.post(
         'Invalid input';
       return res.status(400).json({ error: first });
     }
-    const { username, password } = parsed.data;
+    const { username, password, remember } = parsed.data;
     const rows = await query<{ id: string; username: string; password_hash: string }[]>(
       'SELECT id, username, password_hash FROM users WHERE username = :username LIMIT 1',
       { username }
@@ -88,7 +88,7 @@ router.post(
     if (!ok) {
       return res.status(401).json({ error: 'Invalid username or password' });
     }
-    const token = signToken({ id: user.id, username: user.username });
+    const token = signToken({ id: user.id, username: user.username }, { remember: Boolean(remember) });
     return res.json({ token, user: { id: user.id, username: user.username } });
   })
 );

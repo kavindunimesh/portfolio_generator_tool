@@ -19,7 +19,7 @@ export function RegisterPage() {
     setBusy(true);
     try {
       const res = await api.register(username.trim(), password);
-      setSession(res.token, res.user.username);
+      setSession(res.token, res.user.username, false);
       toast.success('Account created', 'Welcome! Start building your portfolio.');
       navigate('/builder');
     } catch (err) {
@@ -67,14 +67,15 @@ export function LoginPage() {
   const toast = useToast();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(true);
   const [busy, setBusy] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
     try {
-      const res = await api.login(username.trim(), password);
-      setSession(res.token, res.user.username);
+      const res = await api.login(username.trim(), password, remember);
+      setSession(res.token, res.user.username, remember);
       toast.success('Welcome back', `Signed in as ${res.user.username}.`);
       navigate('/builder');
     } catch (err) {
@@ -103,6 +104,17 @@ export function LoginPage() {
             required
             autoComplete="current-password"
           />
+        </label>
+        <label className="auth-remember">
+          <input
+            type="checkbox"
+            checked={remember}
+            onChange={(e) => setRemember(e.target.checked)}
+          />
+          <span>
+            Remember me for 90 days
+            <small>Stay signed in on this device</small>
+          </span>
         </label>
         <button className="btn btn-primary" disabled={busy} type="submit">
           {busy ? 'Signing in…' : 'Log in'}
