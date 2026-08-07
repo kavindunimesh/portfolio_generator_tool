@@ -1,6 +1,16 @@
 Options -MultiViews
 RewriteEngine On
 RewriteBase /
+
+# PWA / static MIME types
+AddType application/manifest+json .webmanifest
+AddType application/javascript .js
+AddType image/png .png
+
+# Never rewrite service worker or manifest
+RewriteRule ^sw\.js$ - [L]
+RewriteRule ^manifest\.webmanifest$ - [L]
+
 RewriteRule ^index\.html$ - [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d

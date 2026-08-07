@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth';
+import { InstallAppBanner } from './InstallAppBanner';
 
 export function AppShell() {
   const { token, username, logout } = useAuth();
@@ -131,6 +132,7 @@ export function AppShell() {
       </div>
 
       <div className={isHome ? 'home-shell' : 'page-shell'}>
+        <InstallAppBanner />
         <Outlet />
       </div>
       <footer className="site-credit">

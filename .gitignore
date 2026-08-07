@@ -10,3 +10,4 @@ frontend.zip
 api.zip
 *.log
 .DS_Store
+.pnpm-store/
